@@ -17,6 +17,14 @@
     "lib": [
       "es2018",
       "dom"
-    ]
+    ],
+    "paths": {
+      "aia-lib": [
+        "dist/aia-lib"
+      ],
+      "aia-lib/*": [
+        "dist/aia-lib/*"
+      ]
+    }
   }
 }
