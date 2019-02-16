@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { AiaImageAnnotatorComponent } from './components/aia-image-annotator.component';
+import { AiaImageAnnotatorComponent } from './components/aia-image-annotator/aia-image-annotator.component';
 
 @NgModule({
   declarations: [AiaImageAnnotatorComponent],

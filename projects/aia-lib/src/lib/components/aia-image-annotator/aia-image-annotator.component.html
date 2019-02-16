@@ -1,0 +1,6 @@
+<div class="outer-container">
+    <div [style.width.px]="imageWidth" class="canvas-container">
+        <canvas class="image-canvas" #imageCanvas></canvas>
+        <canvas #drawingCanvas (touchstart)="touchStart($event)" (touchmove)="touchMove($event)" (touchend)="touchEnd($event)"></canvas>
+    </div>
+</div>

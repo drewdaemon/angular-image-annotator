@@ -1,0 +1,16 @@
+.outer-container {
+    display: flex;
+    justify-content: space-around;
+
+    .canvas-container {
+        position: relative;
+        canvas {
+            position: absolute;
+
+            &.image-canvas {
+                z-index: -1;
+            }
+        }
+    }
+}
+
