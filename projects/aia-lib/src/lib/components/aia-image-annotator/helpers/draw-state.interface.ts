@@ -66,18 +66,32 @@ export class TextState extends DrawState {
         textBoxRef.nativeElement.innerText = '';
     }
 
+    private onTextBoxBlur(textBoxRef: ElementRef): Promise<any> {
+        return new Promise<any>(resolve => {
+            textBoxRef.nativeElement.addEventListener('blur', resolve);
+        });
+    }
+
+    private recordCommandAndReset(imageAnnotator: AiaImageAnnotatorComponent) {
+        this.currentCommand.draw(imageAnnotator.drawingCtx);
+        imageAnnotator.addCommand(this.currentCommand);
+        this.clearTextBox(imageAnnotator.textBoxRef);
+        this.currentCommand = null;
+    }
+
     public touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        if (this.currentCommand) {
-            if (!this.currentCommand.empty()) {
-                this.currentCommand.draw(imageAnnotator.drawingCtx);
-                imageAnnotator.addCommand(this.currentCommand);
-                this.clearTextBox(imageAnnotator.textBoxRef);
-                this.currentCommand = null;
-            }
+        if (this.currentCommand && !this.currentCommand.empty()) {
+            this.recordCommandAndReset(imageAnnotator);
         } else {
             const point = this.getPointFromTouch(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top);
             this.currentCommand = new TextCommand(point);
             this.positionTextBox(imageAnnotator.textBoxRef, point.x, point.y);
+            this.onTextBoxBlur(imageAnnotator.textBoxRef)
+                .then(_ => {
+                    if (this.currentCommand && !this.currentCommand.empty()) {
+                        this.recordCommandAndReset(imageAnnotator);
+                    }
+                });
         }
     }
 
@@ -88,12 +102,18 @@ export class TextState extends DrawState {
     }
 
     public touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
+        if (!this.currentCommand) {
+            return;
+        }
         const point = this.getPointFromTouch(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top);
         this.positionTextBox(imageAnnotator.textBoxRef, point.x, point.y);
         this.focusTextBox(imageAnnotator.textBoxRef);
     }
 
     public keyUp(_: AiaImageAnnotatorComponent, ev: KeyboardEvent) {
+        if (!this.currentCommand) {
+            return;
+        }
         this.currentCommand.setText((<HTMLElement>ev.target).textContent);
     }
 }
