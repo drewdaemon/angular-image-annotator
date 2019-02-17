@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef, Input } from '@angular/core';
-import { DrawState, PencilState, DrawCommand } from './helpers/draw-state.interface';
+import { DrawState, PencilState, TextState, DrawCommand } from './helpers/draw-state.interface';
 
 @Component({
   selector: 'aia-image-annotator',
@@ -11,9 +11,11 @@ export class AiaImageAnnotatorComponent implements OnInit {
 
   @ViewChild('imageCanvas') private imageCanvasRef: ElementRef;
   @ViewChild('drawingCanvas') private drawingCanvasRef: ElementRef;
+  @ViewChild('textBox') textBoxRef: ElementRef;
 
   public imageWidth = 0;
-  private _state: DrawState = new PencilState();
+  public imageHeight = 0;
+  private _state: DrawState = new TextState();
   private _drawCommands: DrawCommand[] = [];
 
   public imageCtx: CanvasRenderingContext2D;
@@ -29,6 +31,7 @@ export class AiaImageAnnotatorComponent implements OnInit {
     const tempImage = new Image();
     tempImage.onload = _ => {
       this.imageWidth = tempImage.width;
+      this.imageHeight = tempImage.height;
       this.initializeCanvas(tempImage);
     };
     tempImage.src = this.image;
@@ -62,5 +65,9 @@ export class AiaImageAnnotatorComponent implements OnInit {
 
   public touchEnd(ev: TouchEvent) {
     this._state.touchEnd(this, ev);
+  }
+
+  public keyUp(ev: KeyboardEvent) {
+    this._state.keyUp(this, ev);
   }
 }

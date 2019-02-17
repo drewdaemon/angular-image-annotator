@@ -6,11 +6,16 @@
         position: relative;
         canvas {
             position: absolute;
+            top: 0;
+            left: 0;
 
             &.image-canvas {
                 z-index: -1;
             }
         }
+        .floating-text-entry {
+            position: absolute;
+            background-color: rgba(0,0,0,0);
+        }
     }
 }
-

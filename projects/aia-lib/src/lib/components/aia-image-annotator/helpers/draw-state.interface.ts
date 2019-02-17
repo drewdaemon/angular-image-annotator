@@ -1,24 +1,31 @@
 import { AiaImageAnnotatorComponent } from '../aia-image-annotator.component';
+import { ElementRef } from '@angular/core';
 
-export interface DrawState {
-    touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
+export abstract class DrawState {
+    protected getPointFromTouch(ev: TouchEvent, offsetLeft: number, offsetTop: number): Point {
+        const touch = ev.changedTouches.item(0);
+        const point: Point = {
+            x: touch.clientX - offsetLeft,
+            y: touch.clientY - offsetTop
+        };
+        return point;
+    }
 
-    touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
+    abstract touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
 
-    touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
+    abstract touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
+
+    abstract touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
+
+    abstract keyUp(imageAnnotator: AiaImageAnnotatorComponent, ev: KeyboardEvent): void;
 }
 
-export class PencilState implements DrawState {
+export class PencilState extends DrawState {
     currentCommand: PencilCommand = new PencilCommand([]);
 
     private addPointToCurrentCommand(ev: TouchEvent, offsetLeft: number, offsetTop: number) {
-        const touch = ev.changedTouches.item(0);
-        this.currentCommand.addPoint(
-            {
-                x: touch.clientX - offsetLeft,
-                y: touch.clientY - offsetTop
-            }
-        );
+        const point = this.getPointFromTouch(ev, offsetLeft, offsetTop);
+        this.currentCommand.addPoint(point);
     }
 
     public touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
@@ -37,6 +44,58 @@ export class PencilState implements DrawState {
         imageAnnotator.addCommand(this.currentCommand);
         this.currentCommand = new PencilCommand([]);
     }
+
+    public keyUp(imageAnnotator: AiaImageAnnotatorComponent, ev: KeyboardEvent): void {}
+}
+
+export class TextState extends DrawState {
+    currentCommand: TextCommand;
+
+    private positionTextBox(textBoxRef: ElementRef, x: number, y: number) {
+        textBoxRef.nativeElement.style.top = y + 'px';
+        textBoxRef.nativeElement.style.left = x + 'px';
+    }
+
+    private focusTextBox(textBoxRef: ElementRef) {
+        setTimeout(_ => {
+            textBoxRef.nativeElement.focus();
+        }, 0);
+    }
+
+    private clearTextBox(textBoxRef: ElementRef) {
+        textBoxRef.nativeElement.innerText = '';
+    }
+
+    public touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
+        if (this.currentCommand) {
+            if (!this.currentCommand.empty()) {
+                this.currentCommand.draw(imageAnnotator.drawingCtx);
+                imageAnnotator.addCommand(this.currentCommand);
+                this.clearTextBox(imageAnnotator.textBoxRef);
+                this.currentCommand = null;
+            }
+        } else {
+            const point = this.getPointFromTouch(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top);
+            this.currentCommand = new TextCommand(point);
+            this.positionTextBox(imageAnnotator.textBoxRef, point.x, point.y);
+        }
+    }
+
+    public touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
+        const point = this.getPointFromTouch(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top);
+        this.currentCommand.updatePosition(point);
+        this.positionTextBox(imageAnnotator.textBoxRef, point.x, point.y);
+    }
+
+    public touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
+        const point = this.getPointFromTouch(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top);
+        this.positionTextBox(imageAnnotator.textBoxRef, point.x, point.y);
+        this.focusTextBox(imageAnnotator.textBoxRef);
+    }
+
+    public keyUp(_: AiaImageAnnotatorComponent, ev: KeyboardEvent) {
+        this.currentCommand.setText((<HTMLElement>ev.target).textContent);
+    }
 }
 
 export interface DrawCommand {
@@ -49,7 +108,7 @@ interface Point {
 }
 
 export class PencilCommand implements DrawCommand {
-    pathArray: Point[];
+    private pathArray: Point[];
 
     constructor(array: any[]) {
         this.pathArray = array;
@@ -69,5 +128,30 @@ export class PencilCommand implements DrawCommand {
             ctx.closePath();
             ctx.stroke();
         }
+    }
+}
+
+export class TextCommand implements DrawCommand {
+    private position: Point;
+    private text = '';
+
+    constructor(point: Point) {
+        this.position = point;
+    }
+
+    public empty(): boolean {
+        return this.text === '';
+    }
+
+    public updatePosition(point: Point) {
+        this.position = point;
+    }
+
+    public setText(text: string) {
+        this.text = text;
+    }
+
+    public draw(ctx: CanvasRenderingContext2D) {
+        ctx.fillText(this.text, this.position.x, this.position.y);
     }
 }
