@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef, Input } from '@angular/core';
-import { DrawState, PencilState, DrawCommand } from './helpers/draw-state.interface';
+import { DrawState, PencilState, TextState, DrawCommand, StateName } from './helpers/draw-state.interface';
 import { DEFAULTS } from './helpers/defaults';
 
 @Component({
@@ -38,6 +38,32 @@ export class AiaImageAnnotatorComponent implements OnInit {
     };
     tempImage.src = this.image;
   }
+
+  /**
+   * BEGIN PUBLIC INTERFACE
+   */
+
+  public setTool(stateName: StateName) {
+    if (stateName === this._state.getName()) {
+      return;
+    }
+    this._state.cleanUp(this);
+    switch(stateName) {
+      case 'pencil':
+        this._state = new PencilState();
+        break;
+      case 'text':
+        this._state = new TextState();
+        break;
+      default:
+        console.error(`Angular Image Annotator: Unrecognized state name ${stateName}`);
+        break;
+    }
+  }
+
+  /**
+   * END PUBLIC INTERFACE
+   */
 
   private initializeCanvas(img: HTMLImageElement) {
     this.imageCanvasRef.nativeElement.width = img.width;

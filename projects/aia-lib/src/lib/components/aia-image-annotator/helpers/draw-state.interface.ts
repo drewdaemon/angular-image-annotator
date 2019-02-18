@@ -1,6 +1,8 @@
 import { AiaImageAnnotatorComponent } from '../aia-image-annotator.component';
 import { ElementRef } from '@angular/core';
 
+export type StateName = 'pencil'|'text';
+
 export abstract class DrawState {
     protected getPointFromTouch(ev: TouchEvent, offsetLeft: number, offsetTop: number): Point {
         const touch = ev.changedTouches.item(0);
@@ -11,6 +13,8 @@ export abstract class DrawState {
         return point;
     }
 
+    abstract getName(): StateName;
+
     abstract touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
 
     abstract touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
@@ -18,6 +22,8 @@ export abstract class DrawState {
     abstract touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
 
     abstract keyUp(imageAnnotator: AiaImageAnnotatorComponent, ev: KeyboardEvent): void;
+
+    abstract cleanUp(imageAnnotator: AiaImageAnnotatorComponent): void;
 }
 
 export class PencilState extends DrawState {
@@ -26,6 +32,10 @@ export class PencilState extends DrawState {
     private addPointToCurrentCommand(ev: TouchEvent, offsetLeft: number, offsetTop: number) {
         const point = this.getPointFromTouch(ev, offsetLeft, offsetTop);
         this.currentCommand.addPoint(point);
+    }
+
+    public getName(): StateName {
+        return 'pencil';
     }
 
     public touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
@@ -46,10 +56,16 @@ export class PencilState extends DrawState {
     }
 
     public keyUp(imageAnnotator: AiaImageAnnotatorComponent, ev: KeyboardEvent): void {}
+
+    public cleanUp(imageAnnotator: AiaImageAnnotatorComponent): void {}
 }
 
 export class TextState extends DrawState {
     currentCommand: TextCommand;
+
+    public getName(): StateName {
+        return 'text';
+    }
 
     private positionTextBox(textBoxRef: ElementRef, x: number, y: number) {
         textBoxRef.nativeElement.style.top = y + 'px';
@@ -115,6 +131,12 @@ export class TextState extends DrawState {
             return;
         }
         this.currentCommand.setText((<HTMLElement>ev.target).textContent);
+    }
+
+    public cleanUp(imageAnnotator: AiaImageAnnotatorComponent): void {
+        if (this.currentCommand && !this.currentCommand.empty()) {
+            this.recordCommandAndReset(imageAnnotator);
+        }
     }
 }
 

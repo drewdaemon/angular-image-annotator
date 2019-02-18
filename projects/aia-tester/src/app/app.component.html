@@ -3,6 +3,8 @@
   <h1>
     Angular Image Annotater Example App
   </h1>
-  <aia-image-annotator [image]="base64Image"></aia-image-annotator>
+  <aia-image-annotator #annotator [image]="base64Image"></aia-image-annotator>
+  <button (click)="pencilTool()">Pencil Tool</button>
+  <button (click)="textTool()">Text Tool</button>
 </div>
 
