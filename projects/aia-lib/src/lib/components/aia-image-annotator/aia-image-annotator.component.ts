@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, Input } from '@angular/core';
-import { DrawState, PencilState, TextState, DrawCommand } from './helpers/draw-state.interface';
+import { DrawState, PencilState, DrawCommand } from './helpers/draw-state.interface';
+import { DEFAULTS } from './helpers/defaults';
 
 @Component({
   selector: 'aia-image-annotator',
@@ -8,6 +9,7 @@ import { DrawState, PencilState, TextState, DrawCommand } from './helpers/draw-s
 })
 export class AiaImageAnnotatorComponent implements OnInit {
   @Input() image: string;
+  @Input() font: string;
 
   @ViewChild('imageCanvas') private imageCanvasRef: ElementRef;
   @ViewChild('drawingCanvas') private drawingCanvasRef: ElementRef;
@@ -15,7 +17,7 @@ export class AiaImageAnnotatorComponent implements OnInit {
 
   public imageWidth = 0;
   public imageHeight = 0;
-  private _state: DrawState = new TextState();
+  private _state: DrawState = new PencilState();
   private _drawCommands: DrawCommand[] = [];
 
   public imageCtx: CanvasRenderingContext2D;
@@ -49,6 +51,10 @@ export class AiaImageAnnotatorComponent implements OnInit {
     this.drawingCtx = this.drawingCanvasRef.nativeElement.getContext('2d');
     this.drawingCtx.lineJoin = 'round';
     this.drawingCtx.lineWidth = 2;
+    this.drawingCtx.font = this.font || DEFAULTS.font;
+    this.drawingCtx.textBaseline = 'hanging';
+
+    this.textBoxRef.nativeElement.style.font = this.font || DEFAULTS.font;
   }
 
   public addCommand(command: DrawCommand) {
