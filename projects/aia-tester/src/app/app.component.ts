@@ -18,4 +18,16 @@ export class AppComponent {
   public textTool() {
     this.annotator.setTool('text');
   }
+
+  public undo() {
+    this.annotator.undo();
+  }
+
+  public redo() {
+    this.annotator.redo();
+  }
+
+  public clear() {
+    this.annotator.clear();
+  }
 }

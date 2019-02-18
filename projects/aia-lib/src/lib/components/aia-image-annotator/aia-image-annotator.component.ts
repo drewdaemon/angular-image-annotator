@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef, Input } from '@angular/core';
-import { DrawState, PencilState, TextState, DrawCommand, StateName } from './helpers/draw-state.interface';
+import { DrawState, PencilState, TextState, DrawCommand, StateName, ClearCommand } from './helpers/draw-state.interface';
 import { DEFAULTS } from './helpers/defaults';
 
 @Component({
@@ -19,6 +19,7 @@ export class AiaImageAnnotatorComponent implements OnInit {
   public imageHeight = 0;
   private _state: DrawState = new PencilState();
   private _drawCommands: DrawCommand[] = [];
+  private _redoCommands: DrawCommand[] = [];
 
   public imageCtx: CanvasRenderingContext2D;
   public drawingCtx: CanvasRenderingContext2D;
@@ -43,12 +44,16 @@ export class AiaImageAnnotatorComponent implements OnInit {
    * BEGIN PUBLIC INTERFACE
    */
 
-  public setTool(stateName: StateName) {
-    if (stateName === this._state.getName()) {
+  /**
+   * Sets current tool
+   * @param toolName Name of the tool
+   */
+  public setTool(toolName: StateName) {
+    if (toolName === this._state.getName()) {
       return;
     }
     this._state.cleanUp(this);
-    switch(stateName) {
+    switch(toolName) {
       case 'pencil':
         this._state = new PencilState();
         break;
@@ -56,14 +61,68 @@ export class AiaImageAnnotatorComponent implements OnInit {
         this._state = new TextState();
         break;
       default:
-        console.error(`Angular Image Annotator: Unrecognized state name ${stateName}`);
+        console.error(`Angular Image Annotator: Unrecognized tool name ${toolName}`);
         break;
     }
   }
 
   /**
+   * Undo last action
+   */
+  public undo() {
+    if (!this._drawCommands.length) {
+      return;
+    }
+    this._redoCommands.push(this._drawCommands.pop());
+    this.clearCanvas();
+    this.drawCommandsOnCanvas(this._drawCommands, this.drawingCtx);
+  }
+
+  /**
+   * Redo last undone action if available
+   */
+  public redo() {
+    if (!this._redoCommands.length) {
+      return;
+    }
+    this._drawCommands.push(this._redoCommands.pop());
+    this.clearCanvas();
+    this.drawCommandsOnCanvas(this._drawCommands, this.drawingCtx);
+  }
+
+  /**
+   * Clears canvas undo-ably
+   */
+  public clear() {
+    const clearCommand = new ClearCommand(
+      this.drawingCanvasRef.nativeElement.width,
+      this.drawingCanvasRef.nativeElement.height
+    );
+    this.addCommand(clearCommand);
+    this.drawCommandsOnCanvas([clearCommand], this.drawingCtx);
+  }
+
+  /**
    * END PUBLIC INTERFACE
    */
+
+   /**
+    * Clears drawing canvas - no questions asked
+    */
+   private clearCanvas() {
+    this.drawingCtx.clearRect(0, 0, this.drawingCanvasRef.nativeElement.width, this.drawingCanvasRef.nativeElement.height);
+   }
+
+  /**
+   * Draws commands on canvas
+   * @param commands The draw commands to be drawn
+   * @param ctx The canvas 2d context
+   */
+  private drawCommandsOnCanvas(commands: DrawCommand[], ctx: CanvasRenderingContext2D) {
+    commands.forEach(command => {
+      command.draw(ctx);
+    });
+  }
 
   private initializeCanvas(img: HTMLImageElement) {
     this.imageCanvasRef.nativeElement.width = img.width;
@@ -85,6 +144,7 @@ export class AiaImageAnnotatorComponent implements OnInit {
 
   public addCommand(command: DrawCommand) {
     this._drawCommands.push(command);
+    this._redoCommands = [];
   }
 
   public touchStart(ev: TouchEvent) {

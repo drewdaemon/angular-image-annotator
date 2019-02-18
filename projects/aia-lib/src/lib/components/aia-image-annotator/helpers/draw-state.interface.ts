@@ -197,3 +197,18 @@ export class TextCommand implements DrawCommand {
         ctx.fillText(this.text, this.position.x, this.position.y);
     }
 }
+
+
+export class ClearCommand implements DrawCommand {
+    private canvasWidth;
+    private canvasHeight;
+
+    constructor(canvasWidth: number, canvasHeight: number) {
+        this.canvasWidth = canvasWidth;
+        this.canvasHeight = canvasHeight;
+    }
+
+    public draw(ctx: CanvasRenderingContext2D) {
+        ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+    }
+}
