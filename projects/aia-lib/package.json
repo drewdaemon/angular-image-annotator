@@ -1,6 +1,22 @@
 {
-  "name": "aia-lib",
+  "name": "angular-image-annotator",
   "version": "0.0.1",
+  "description": "Angular component for annotating images.",
+  "author": "Andrew Tate",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drewctate/angular-image-annotator"
+  },
+  "keywords": [
+    "angular",
+    "annotator",
+    "annotation",
+    "image",
+    "image manipulation",
+    "canvas",
+    "javascript",
+    "typescript"
+  ],
   "peerDependencies": {
     "@angular/common": "^7.1.0",
     "@angular/core": "^7.1.0"

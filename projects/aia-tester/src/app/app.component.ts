@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { BASE64_IMAGE } from './base64Image';
-import { AiaImageAnnotatorComponent } from 'aia-lib';
+import { AiaImageAnnotatorComponent } from 'angular-image-annotator';
 
 @Component({
   selector: 'app-root',

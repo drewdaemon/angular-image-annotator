@@ -7,4 +7,4 @@ import { AiaImageAnnotatorComponent } from './components/aia-image-annotator/aia
   ],
   exports: [AiaImageAnnotatorComponent]
 })
-export class AiaLibModule { }
+export class AngularImageAnnotatorModule { }

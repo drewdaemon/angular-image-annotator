@@ -19,10 +19,10 @@
       "dom"
     ],
     "paths": {
-      "aia-lib": [
+      "angular-image-annotator": [
         "dist/aia-lib"
       ],
-      "aia-lib/*": [
+      "angular-image-annotator/*": [
         "dist/aia-lib/*"
       ]
     }
