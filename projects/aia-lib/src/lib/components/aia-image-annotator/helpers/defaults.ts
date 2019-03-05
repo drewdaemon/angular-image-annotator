@@ -1,3 +1,5 @@
 export const DEFAULTS = {
-    font: '15px Georgia'
+    fontSize: '15px',
+    fontFamily: 'Georgia',
+    color: '#1218CE'
 };

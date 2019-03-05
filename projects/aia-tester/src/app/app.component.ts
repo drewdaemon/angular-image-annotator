@@ -9,6 +9,10 @@ import { AiaImageAnnotatorComponent } from 'aia-lib';
 })
 export class AppComponent {
   base64Image = BASE64_IMAGE;
+  public strokeColor = '#000';
+  public fontSize = '20px';
+  public fontFamily = 'Georgia';
+
   @ViewChild('annotator') annotator: AiaImageAnnotatorComponent;
 
   public pencilTool() {

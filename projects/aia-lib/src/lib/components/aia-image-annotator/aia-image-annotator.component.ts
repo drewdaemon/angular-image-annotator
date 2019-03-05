@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, Input, OnChanges } from '@angular/core';
 import { DrawState, PencilState, TextState, DrawCommand, StateName, ClearCommand } from './helpers/draw-state.interface';
 import { DEFAULTS } from './helpers/defaults';
 
@@ -7,9 +7,11 @@ import { DEFAULTS } from './helpers/defaults';
   templateUrl: './aia-image-annotator.component.html',
   styleUrls: ['./aia-image-annotator.component.scss']
 })
-export class AiaImageAnnotatorComponent implements OnInit {
+export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
   @Input() image: string;
-  @Input() font: string;
+  @Input() fontFamily: string;
+  @Input() fontSize: string;
+  @Input() color: string;
 
   @ViewChild('imageCanvas') private imageCanvasRef: ElementRef;
   @ViewChild('drawingCanvas') private drawingCanvasRef: ElementRef;
@@ -40,6 +42,10 @@ export class AiaImageAnnotatorComponent implements OnInit {
     tempImage.src = this.image;
   }
 
+  ngOnChanges() {
+    this.setColorAndFont(this.color, this.fontSize, this.fontFamily);
+  }
+
   /**
    * BEGIN PUBLIC INTERFACE
    */
@@ -53,7 +59,7 @@ export class AiaImageAnnotatorComponent implements OnInit {
       return;
     }
     this._state.cleanUp(this);
-    switch(toolName) {
+    switch (toolName) {
       case 'pencil':
         this._state = new PencilState();
         break;
@@ -136,10 +142,24 @@ export class AiaImageAnnotatorComponent implements OnInit {
     this.drawingCtx = this.drawingCanvasRef.nativeElement.getContext('2d');
     this.drawingCtx.lineJoin = 'round';
     this.drawingCtx.lineWidth = 2;
-    this.drawingCtx.font = this.font || DEFAULTS.font;
+
     this.drawingCtx.textBaseline = 'hanging';
 
-    this.textBoxRef.nativeElement.style.font = this.font || DEFAULTS.font;
+    this.setColorAndFont(this.color, this.fontSize, this.fontFamily);
+  }
+
+  private setColorAndFont(color: string, fontSize: string, fontFamily: string) {
+    if (!this.drawingCtx || !this.textBoxRef) {
+      return;
+    }
+
+    this.drawingCtx.strokeStyle = color || DEFAULTS.color;
+    this.drawingCtx.fillStyle = color || DEFAULTS.color;
+    this.textBoxRef.nativeElement.style.color = color || DEFAULTS.color;
+
+    const fontString = `${fontSize || DEFAULTS.fontSize} ${fontFamily || DEFAULTS.fontFamily}`;
+    this.drawingCtx.font = fontString;
+    this.textBoxRef.nativeElement.style.font = fontString;
   }
 
   public addCommand(command: DrawCommand) {
