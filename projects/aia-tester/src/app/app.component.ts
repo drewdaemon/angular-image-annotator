@@ -1,5 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
-import { BASE64_IMAGE } from './base64Image';
+import { HAND_IMAGE } from './images/hand';
+import { FLOWER_IMAGE } from './images/flower';
 import { AiaImageAnnotatorComponent } from 'angular-image-annotator';
 
 @Component({
@@ -8,12 +9,20 @@ import { AiaImageAnnotatorComponent } from 'angular-image-annotator';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  base64Image = BASE64_IMAGE;
+  base64Image = FLOWER_IMAGE;
   public strokeColor = '#000';
   public fontSize = '20px';
   public fontFamily = 'Georgia';
 
   @ViewChild('annotator') annotator: AiaImageAnnotatorComponent;
+
+  public changeImage(image) {
+    if (image === 'flower') {
+      this.base64Image = FLOWER_IMAGE;
+    } else {
+      this.base64Image = HAND_IMAGE;
+    }
+  }
 
   public pencilTool() {
     this.annotator.setTool('pencil');

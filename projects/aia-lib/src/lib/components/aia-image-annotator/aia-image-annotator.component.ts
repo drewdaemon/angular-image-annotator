@@ -8,9 +8,27 @@ import { DEFAULTS } from './helpers/defaults';
   styleUrls: ['./aia-image-annotator.component.scss']
 })
 export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
+  /**
+   * The image to annotate. Can be Base64 string or a URL.
+   */
   @Input() image: string;
+
+  /**
+   * The font family.
+   * Default: Georgia
+   */
   @Input() fontFamily: string;
+
+  /**
+   * The font size (including units).
+   * Default: 15px
+   */
   @Input() fontSize: string;
+
+  /**
+   * Hex color string.
+   * Default: #1218CE (deep blue)
+   */
   @Input() color: string;
 
   @ViewChild('imageCanvas') private imageCanvasRef: ElementRef;
@@ -33,17 +51,17 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
   constructor() { }
 
   ngOnInit() {
-    const tempImage = new Image();
-    tempImage.onload = _ => {
-      this.imageWidth = tempImage.width;
-      this.imageHeight = tempImage.height;
-      this.initializeCanvas(tempImage);
-    };
-    tempImage.src = this.image;
+    this.loadImageAndInitializeCanvas(this.image);
   }
 
-  ngOnChanges() {
-    this.setColorAndFont(this.color, this.fontSize, this.fontFamily);
+  ngOnChanges(changes) {
+    if (changes.image) {
+      // Full reset
+      this.loadImageAndInitializeCanvas(this.image);
+    } else {
+      // Just colors and fonts
+      this.setColorAndFont(this.color, this.fontSize, this.fontFamily);
+    }
   }
 
   /**
@@ -112,24 +130,30 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
    * END PUBLIC INTERFACE
    */
 
-   /**
-    * Clears drawing canvas - no questions asked
-    */
-   private clearCanvas() {
-    this.drawingCtx.clearRect(0, 0, this.drawingCanvasRef.nativeElement.width, this.drawingCanvasRef.nativeElement.height);
-   }
-
   /**
-   * Draws commands on canvas
-   * @param commands The draw commands to be drawn
-   * @param ctx The canvas 2d context
+   * Loads an image from an src and initializes the canvases. CLEARS ALL EXISTING ANNOTATIONS
+   * @param image The src for the image to be annotated
    */
-  private drawCommandsOnCanvas(commands: DrawCommand[], ctx: CanvasRenderingContext2D) {
-    commands.forEach(command => {
-      command.draw(ctx);
-    });
+  private loadImageAndInitializeCanvas(image: string) {
+    if (!image) {
+      console.log('aia-image-annotator: No image bound... skipping render');
+      return;
+    }
+
+    const tempImage = new Image();
+    tempImage.onload = _ => {
+      this.imageWidth = tempImage.width;
+      this.imageHeight = tempImage.height;
+      this.initializeCanvas(tempImage);
+    };
+    tempImage.src = image;
   }
 
+  /**
+   * Initializes the canvases (both drawing and image)
+   * Sets canvas dimensions, loads contexts, etc.
+   * @param img The image to load on the image canvas
+   */
   private initializeCanvas(img: HTMLImageElement) {
     this.imageCanvasRef.nativeElement.width = img.width;
     this.imageCanvasRef.nativeElement.height = img.height;
@@ -148,6 +172,9 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
     this.setColorAndFont(this.color, this.fontSize, this.fontFamily);
   }
 
+  /**
+   * Sets the color and the font
+   */
   private setColorAndFont(color: string, fontSize: string, fontFamily: string) {
     if (!this.drawingCtx || !this.textBoxRef) {
       return;
@@ -160,6 +187,25 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
     const fontString = `${fontSize || DEFAULTS.fontSize} ${fontFamily || DEFAULTS.fontFamily}`;
     this.drawingCtx.font = fontString;
     this.textBoxRef.nativeElement.style.font = fontString;
+  }
+
+
+  /**
+   * Clears drawing canvas - no questions asked
+   */
+  private clearCanvas() {
+    this.drawingCtx.clearRect(0, 0, this.drawingCanvasRef.nativeElement.width, this.drawingCanvasRef.nativeElement.height);
+  }
+
+  /**
+   * Draws commands on canvas
+   * @param commands The draw commands to be drawn
+   * @param ctx The canvas 2d context
+   */
+  private drawCommandsOnCanvas(commands: DrawCommand[], ctx: CanvasRenderingContext2D) {
+    commands.forEach(command => {
+      command.draw(ctx);
+    });
   }
 
   public addCommand(command: DrawCommand) {

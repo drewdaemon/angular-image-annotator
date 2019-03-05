@@ -57,7 +57,9 @@ export class MyComponent {
 ### Bound properties
 
 #### `image`
-The image to annotate. Can be `Base64`, or `Image`
+The image to annotate. Can be Base64 string or a URL.
+
+*NOTE:* Changing this property results in all annotations from the previous image being cleared.
 
 #### `color`
 Hex color string.
@@ -91,9 +93,8 @@ Clears all annotations (undoably).
 ## Development
 
 ### Roadmap
-- Set image with function instead of bound property
-- Ability to set max dimensions
 - Function to generate final image
+- Ability to set max dimensions
 - Support mouse events (desktop context)
 
 ### Build
