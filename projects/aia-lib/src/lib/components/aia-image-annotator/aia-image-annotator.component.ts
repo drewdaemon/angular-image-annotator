@@ -9,7 +9,7 @@ import { DEFAULTS } from './helpers/defaults';
 })
 export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
   /**
-   * The image to annotate. Can be Base64 string or a URL.
+   * The image to annotate. Can be data URI or a URL.
    */
   @Input() image: string;
 

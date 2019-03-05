@@ -57,7 +57,7 @@ export class MyComponent {
 ### Bound properties
 
 #### `image`
-The image to annotate. Can be Base64 string or a URL.
+The image to annotate. Can be data URI or a URL.
 
 *NOTE:* Changing this property results in all annotations from the previous image being cleared.
 
