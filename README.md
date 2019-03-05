@@ -1,27 +1,105 @@
-# AngularImageAnnotator
+# Angular Image Annotator
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 7.1.3.
+## Description
+An Angular library for in-browser image annotation (think MSPaint on the canvas).
 
-## Development server
+## Getting Started
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+### 1. Install with Yarn/NPM
+```bash
+yarn add angular-image-annotator
+```
+or
+```bash
+npm install angular-image-annotator
+```
 
-## Code scaffolding
+### 2. Import `AngularImageAnnotatorModule` in your module
+```typescript
+import { AppComponent } from './app.component';
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+import { AngularImageAnnotatorModule } from 'angular-image-annotator';
 
-## Build
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    AngularImageAnnotatorModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+```
 
-## Running unit tests
+### 3. Add image annotator component to your HTML
+```html
+<aia-image-annotator #annotator [image]="myImage" [fontSize]="'36px'" [fontFamily]="'Times'" [color]="'#000000'"></aia-image-annotator>
+```
+
+
+### 4. Import `AiaImageAnnotatorComponent` in your component and reference with `@ViewChild`
+```typescript
+import { Component, ViewChild } from '@angular/core';
+import { AiaImageAnnotatorComponent } from 'angular-image-annotator';
+
+@Component(...)
+export class MyComponent {
+  myImage; // Instantiate with your image
+
+  @ViewChild('annotator') annotator: AiaImageAnnotatorComponent;
+}
+```
+
+## Annotator Component Public API
+### Bound properties
+
+#### `image`
+The image to annotate. Can be `Base64`, or `Image`
+
+#### `color`
+Hex color string.
+Default: `#1218CE` (deep blue)
+
+#### `fontFamily`
+The font family.
+Default: `Georgia`
+
+#### `fontSize`
+The font size (including units).
+Default: `15px`
+
+### Functions
+
+#### `setTool(toolName: 'pencil'|'text')`
+Changes the current tool. Supported tools are pencil and text.
+
+#### `undo()`
+Undoes the last action if available.
+
+#### `redo()`
+Redoes the last undone action if available.
+
+#### `clear()`
+Clears all annotations (undoably).
+
+## Notes
+- This library currently only supports a mobile context (touch events).
+
+## Development
+
+### Roadmap
+- Set image with function instead of bound property
+- Ability to set max dimensions
+- Function to generate final image
+- Support mouse events (desktop context)
+
+### Build
+
+Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+
+### Running unit tests
 
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
