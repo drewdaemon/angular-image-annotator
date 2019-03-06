@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef, Input, OnChanges } from '@angular/core';
+import { disablePageScroll, enablePageScroll } from 'scroll-lock';
 import { DrawState, PencilState, TextState, DrawCommand, StateName, ClearCommand } from './helpers/draw-state.interface';
 import { DEFAULTS } from './helpers/defaults';
 
@@ -228,6 +229,7 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
   }
 
   public touchStart(ev: TouchEvent) {
+    disablePageScroll();
     this._state.touchStart(this, ev);
   }
 
@@ -237,6 +239,7 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
 
   public touchEnd(ev: TouchEvent) {
     this._state.touchEnd(this, ev);
+    enablePageScroll();
   }
 
   public keyUp(ev: KeyboardEvent) {

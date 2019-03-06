@@ -5650,6 +5650,10 @@ schema-utils@^1.0.0:
     ajv-errors "^1.0.0"
     ajv-keywords "^3.1.0"
 
+scroll-lock@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/scroll-lock/-/scroll-lock-2.1.0.tgz#180b4b8c3f2e779f5f7cbd5c2dc6e1b7a603680d"
+
 scss-tokenizer@^0.2.3:
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/scss-tokenizer/-/scss-tokenizer-0.2.3.tgz#8eb06db9a9723333824d3f5530641149847ce5d1"
