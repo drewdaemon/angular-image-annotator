@@ -58,6 +58,8 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
   ngOnChanges(changes) {
     if (changes.image) {
       // Full reset
+      this._drawCommands = [];
+      this._redoCommands = [];
       this.loadImageAndInitializeCanvas(this.image);
     } else {
       // Just colors and fonts
