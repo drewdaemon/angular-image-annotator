@@ -56,36 +56,39 @@ export class MyComponent {
 ## Annotator Component Public API
 ### Bound properties
 
-#### `image`
+#### `image: string`
 The image to annotate. Can be data URI or a URL.
 
 *NOTE:* Changing this property results in all annotations from the previous image being cleared.
 
-#### `color`
+#### `color: string`
 Hex color string.
 Default: `#1218CE` (deep blue)
 
-#### `fontFamily`
+#### `fontFamily: string`
 The font family.
 Default: `Georgia`
 
-#### `fontSize`
+#### `fontSize: string`
 The font size (including units).
 Default: `15px`
 
 ### Functions
 
-#### `setTool(toolName: 'pencil'|'text')`
+#### `setTool(toolName: 'pencil'|'text'): void`
 Changes the current tool. Supported tools are pencil and text.
 
-#### `undo()`
+#### `undo(): void`
 Undoes the last action if available.
 
-#### `redo()`
+#### `redo(): void`
 Redoes the last undone action if available.
 
-#### `clear()`
+#### `clear(): void`
 Clears all annotations (undoably).
+
+#### `getAnnotatedImage(type: 'image/jpeg'|'image/png'): string`
+Returns annotated image as data URI. Default image type is 'image/png'.
 
 ## Notes
 - This library currently only supports a mobile context (touch events).
@@ -93,9 +96,13 @@ Clears all annotations (undoably).
 ## Development
 
 ### Roadmap
-- Function to generate final image
-- Ability to set max dimensions
-- Support mouse events (desktop context)
+[x] Function to generate final image
+
+
+[ ] Ability to set max dimensions
+
+
+[ ] Support mouse events (desktop context)
 
 ### Build
 

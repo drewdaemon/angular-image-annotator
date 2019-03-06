@@ -12,6 +12,10 @@
             &.image-canvas {
                 z-index: -1;
             }
+
+            &.merge-canvas {
+                display: none;
+            }
         }
         .floating-text-entry {
             position: absolute;

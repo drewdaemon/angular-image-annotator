@@ -33,6 +33,7 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
 
   @ViewChild('imageCanvas') private imageCanvasRef: ElementRef;
   @ViewChild('drawingCanvas') private drawingCanvasRef: ElementRef;
+  @ViewChild('mergeCanvas') private mergeCanvasRef: ElementRef;
   @ViewChild('textBox') textBoxRef: ElementRef;
 
   public imageWidth = 0;
@@ -127,6 +128,20 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
   }
 
   /**
+   * Returns annotated image as data URI
+   */
+  public getAnnotatedImage(type: 'image/jpeg'|'image/png' = 'image/png'): string {
+    const mergeCanvas = this.mergeCanvasRef.nativeElement;
+    mergeCanvas.style.width = this.drawingCanvasRef.nativeElement.width;
+    mergeCanvas.style.height = this.drawingCanvasRef.nativeElement.height;
+
+    const mergeCtx = mergeCanvas.getContext('2d');
+    mergeCtx.drawImage(this.imageCanvasRef.nativeElement, 0, 0);
+    mergeCtx.drawImage(this.drawingCanvasRef.nativeElement, 0, 0);
+    return mergeCanvas.toDataURL(type);
+  }
+
+  /**
    * END PUBLIC INTERFACE
    */
 
@@ -144,7 +159,9 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
     tempImage.onload = _ => {
       this.imageWidth = tempImage.width;
       this.imageHeight = tempImage.height;
-      this.initializeCanvas(tempImage);
+      setTimeout(_ => { // Pushing canvas init to next cycle
+        this.initializeCanvas(tempImage);
+      }, 0);
     };
     tempImage.src = image;
   }
@@ -155,13 +172,8 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
    * @param img The image to load on the image canvas
    */
   private initializeCanvas(img: HTMLImageElement) {
-    this.imageCanvasRef.nativeElement.width = img.width;
-    this.imageCanvasRef.nativeElement.height = img.height;
     this.imageCtx = this.imageCanvasRef.nativeElement.getContext('2d');
     this.imageCtx.drawImage(img, 0, 0);
-
-    this.drawingCanvasRef.nativeElement.width = img.width;
-    this.drawingCanvasRef.nativeElement.height = img.height;
 
     this.drawingCtx = this.drawingCanvasRef.nativeElement.getContext('2d');
     this.drawingCtx.lineJoin = 'round';

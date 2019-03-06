@@ -16,6 +16,13 @@ export class AppComponent {
 
   @ViewChild('annotator') annotator: AiaImageAnnotatorComponent;
 
+  public getAnnotatedImage() {
+    const annotatedImageURI = this.annotator.getAnnotatedImage();
+    const downloadURL = annotatedImageURI.replace(/^data:image\/[^;]+/, 'data:application/octet-stream');
+    window.open(downloadURL);
+
+  }
+
   public changeImage(image) {
     if (image === 'flower') {
       this.base64Image = FLOWER_IMAGE;
