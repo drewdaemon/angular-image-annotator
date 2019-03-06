@@ -27,7 +27,7 @@ export abstract class DrawState {
 }
 
 export class PencilState extends DrawState {
-    currentCommand: PencilCommand = new PencilCommand([]);
+    currentCommand: PencilCommand = new PencilCommand();
 
     private addPointToCurrentCommand(ev: TouchEvent, offsetLeft: number, offsetTop: number) {
         const point = this.getPointFromTouch(ev, offsetLeft, offsetTop);
@@ -40,6 +40,7 @@ export class PencilState extends DrawState {
 
     public touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
         this.addPointToCurrentCommand(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top);
+        this.currentCommand.setColor(<string>imageAnnotator.drawingCtx.fillStyle);
         this.currentCommand.draw(imageAnnotator.drawingCtx);
     }
 
@@ -52,7 +53,7 @@ export class PencilState extends DrawState {
         this.addPointToCurrentCommand(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top);
         this.currentCommand.draw(imageAnnotator.drawingCtx);
         imageAnnotator.addCommand(this.currentCommand);
-        this.currentCommand = new PencilCommand([]);
+        this.currentCommand = new PencilCommand();
     }
 
     public keyUp(imageAnnotator: AiaImageAnnotatorComponent, ev: KeyboardEvent): void {}
@@ -89,6 +90,7 @@ export class TextState extends DrawState {
     }
 
     private recordCommandAndReset(imageAnnotator: AiaImageAnnotatorComponent) {
+        this.currentCommand.setColor(<string>imageAnnotator.drawingCtx.fillStyle);
         this.currentCommand.draw(imageAnnotator.drawingCtx);
         imageAnnotator.addCommand(this.currentCommand);
         this.clearTextBox(imageAnnotator.textBoxRef);
@@ -150,17 +152,22 @@ interface Point {
 }
 
 export class PencilCommand implements DrawCommand {
-    private pathArray: Point[];
+    private pathArray: Point[] = [];
+    private color: string;
 
-    constructor(array: any[]) {
-        this.pathArray = array;
-    }
+    constructor() { }
 
     public addPoint(point: Point) {
         this.pathArray.push(point);
     }
 
+    public setColor(color: string) {
+        this.color = color;
+    }
+
     public draw(ctx: CanvasRenderingContext2D) {
+        const currentStrokeStyle = ctx.strokeStyle;
+        ctx.strokeStyle = this.color;
         ctx.beginPath();
         for (let i = 1; i < this.pathArray.length; i++) {
             const coord = this.pathArray[i];
@@ -170,12 +177,14 @@ export class PencilCommand implements DrawCommand {
             ctx.closePath();
             ctx.stroke();
         }
+        ctx.strokeStyle = currentStrokeStyle;
     }
 }
 
 export class TextCommand implements DrawCommand {
     private position: Point;
     private text = '';
+    private color: string;
 
     constructor(point: Point) {
         this.position = point;
@@ -193,8 +202,15 @@ export class TextCommand implements DrawCommand {
         this.text = text;
     }
 
+    public setColor(color: string) {
+        this.color = color;
+    }
+
     public draw(ctx: CanvasRenderingContext2D) {
+        const currentFillStyle = ctx.fillStyle;
+        ctx.fillStyle = this.color;
         ctx.fillText(this.text, this.position.x, this.position.y);
+        ctx.fillStyle = currentFillStyle;
     }
 }
 
