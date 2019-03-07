@@ -3,6 +3,6 @@
         <canvas class="image-canvas" #imageCanvas [width]="imageWidth" [height]="imageHeight"></canvas>
         <canvas #drawingCanvas (touchstart)="touchStart($event)" (touchmove)="touchMove($event)" (touchend)="touchEnd($event)" [width]="imageWidth" [height]="imageHeight"></canvas>
         <canvas #mergeCanvas class="merge-canvas" [width]="imageWidth" [height]="imageHeight"></canvas>
-        <div (keyup)="keyUp($event)" #textBox contenteditable="true" class="floating-text-entry"> </div>
+        <input (keyup)="keyUp($event)" #textBox autocomplete="off" class="floating-text-entry">
     </div>
 </div>

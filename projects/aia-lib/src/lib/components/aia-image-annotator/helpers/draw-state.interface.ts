@@ -80,7 +80,7 @@ export class TextState extends DrawState {
     }
 
     private clearTextBox(textBoxRef: ElementRef) {
-        textBoxRef.nativeElement.innerText = '';
+        textBoxRef.nativeElement.value = '';
     }
 
     private onTextBoxBlur(textBoxRef: ElementRef): Promise<any> {
@@ -104,6 +104,7 @@ export class TextState extends DrawState {
             const point = this.getPointFromTouch(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top);
             this.currentCommand = new TextCommand(point);
             this.positionTextBox(imageAnnotator.textBoxRef, point.x, point.y);
+            this.focusTextBox(imageAnnotator.textBoxRef);
             this.onTextBoxBlur(imageAnnotator.textBoxRef)
                 .then(_ => {
                     if (this.currentCommand && !this.currentCommand.empty()) {
@@ -123,8 +124,6 @@ export class TextState extends DrawState {
         if (!this.currentCommand) {
             return;
         }
-        const point = this.getPointFromTouch(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top);
-        this.positionTextBox(imageAnnotator.textBoxRef, point.x, point.y);
         this.focusTextBox(imageAnnotator.textBoxRef);
     }
 
@@ -132,7 +131,7 @@ export class TextState extends DrawState {
         if (!this.currentCommand) {
             return;
         }
-        this.currentCommand.setText((<HTMLElement>ev.target).textContent);
+        this.currentCommand.setText((<HTMLInputElement>ev.target).value);
     }
 
     public cleanUp(imageAnnotator: AiaImageAnnotatorComponent): void {
