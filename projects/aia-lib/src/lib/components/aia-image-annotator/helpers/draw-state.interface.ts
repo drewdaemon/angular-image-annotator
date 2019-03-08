@@ -129,7 +129,8 @@ export class TextState extends DrawState {
     }
 
     public touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        const point = this.getPointFromTouch(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top);
+        const point = this.getPointFromTouch(ev,
+            imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
         this.currentCommand.updatePosition(point);
         this.positionTextBox(imageAnnotator.textBoxRef, point.x, point.y);
     }
