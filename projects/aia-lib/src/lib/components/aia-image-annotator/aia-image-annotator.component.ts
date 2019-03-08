@@ -31,6 +31,8 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
    */
   @Input() color: string;
 
+  @Input() displayWidth = null;
+
   @ViewChild('imageCanvas') private imageCanvasRef: ElementRef;
   @ViewChild('drawingCanvas') private drawingCanvasRef: ElementRef;
   @ViewChild('mergeCanvas') private mergeCanvasRef: ElementRef;
@@ -38,6 +40,12 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
 
   public imageWidth = 0;
   public imageHeight = 0;
+  public displayHeight = 0;
+  /**
+   * Multiply this to project from the DOM space to the canvas space
+   */
+  public projectionFactor = 0;
+
   private _state: DrawState = new PencilState();
   private _drawCommands: DrawCommand[] = [];
   private _redoCommands: DrawCommand[] = [];
@@ -161,11 +169,27 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
     tempImage.onload = _ => {
       this.imageWidth = tempImage.width;
       this.imageHeight = tempImage.height;
+      this.initializeDisplayDimensions();
       setTimeout(_ => { // Pushing canvas init to next cycle
         this.initializeCanvas(tempImage);
       }, 0);
     };
     tempImage.src = image;
+  }
+
+  /**
+   * Sets projection factor, display width, and display height.
+   * If display width hasn't been provided, it defaults to the image dimensions
+   */
+  private initializeDisplayDimensions() {
+    if (this.displayWidth) {
+      this.displayHeight = this.displayWidth * this.imageHeight / this.imageWidth;
+      this.projectionFactor = this.imageHeight / this.displayHeight;
+    } else {
+      this.displayHeight = this.imageHeight;
+      this.displayWidth = this.imageWidth;
+      this.projectionFactor = 1;
+    }
   }
 
   /**
@@ -200,7 +224,10 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
 
     const fontString = `${fontSize || DEFAULTS.fontSize} ${fontFamily || DEFAULTS.fontFamily}`;
     this.drawingCtx.font = fontString;
-    this.textBoxRef.nativeElement.style.font = fontString;
+
+    const fontParts = fontSize.match(/(.*)(px|pt)/);
+    const adjustedFontSize = Math.floor(parseInt(fontParts[1]) / this.projectionFactor) + fontParts[2];
+    this.textBoxRef.nativeElement.style.font = `${adjustedFontSize || DEFAULTS.fontSize} ${fontFamily || DEFAULTS.fontFamily}`;
   }
 
 

@@ -1,7 +1,7 @@
 <div class="outer-container">
-    <div [style.width.px]="imageWidth" [style.height.px]="imageHeight" class="canvas-container">
-        <canvas class="image-canvas" #imageCanvas [width]="imageWidth" [height]="imageHeight"></canvas>
-        <canvas #drawingCanvas (touchstart)="touchStart($event)" (touchmove)="touchMove($event)" (touchend)="touchEnd($event)" [width]="imageWidth" [height]="imageHeight"></canvas>
+    <div [style.width.px]="displayWidth" [style.height.px]="displayHeight" class="canvas-container">
+        <canvas class="image-canvas" #imageCanvas [width]="imageWidth" [height]="imageHeight" [style.width.px]="displayWidth" [style.height.px]="displayHeight"></canvas>
+        <canvas #drawingCanvas (touchstart)="touchStart($event)" (touchmove)="touchMove($event)" (touchend)="touchEnd($event)" [width]="imageWidth" [height]="imageHeight" [style.width.px]="displayWidth" [style.height.px]="displayHeight"></canvas>
         <canvas #mergeCanvas class="merge-canvas" [width]="imageWidth" [height]="imageHeight"></canvas>
         <input (keyup)="keyUp($event)" #textBox autocomplete="off" class="floating-text-entry">
     </div>

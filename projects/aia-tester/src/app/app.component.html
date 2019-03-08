@@ -7,7 +7,7 @@
     <option [selected]="true" value="flower">Flower</option>
     <option value="hand">Hand</option>
   </select>
-  <aia-image-annotator #annotator [image]="base64Image" [fontSize]="fontSize" [fontFamily]="fontFamily" [color]="strokeColor"></aia-image-annotator>
+  <aia-image-annotator #annotator [image]="base64Image" [fontSize]="fontSize" [fontFamily]="fontFamily" [color]="strokeColor" [displayWidth]="displayWidth"></aia-image-annotator>
   <select [(ngModel)]="strokeColor">
     <option value="#000">Black</option>
     <option value="#1218CE">Blue</option>
