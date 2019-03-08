@@ -91,6 +91,7 @@ export class TextState extends DrawState {
 
     private recordCommandAndReset(imageAnnotator: AiaImageAnnotatorComponent) {
         this.currentCommand.setColor(<string>imageAnnotator.drawingCtx.fillStyle);
+        this.currentCommand.setFont(imageAnnotator.drawingCtx.font);
         this.currentCommand.draw(imageAnnotator.drawingCtx);
         imageAnnotator.addCommand(this.currentCommand);
         this.clearTextBox(imageAnnotator.textBoxRef);
@@ -184,6 +185,7 @@ export class TextCommand implements DrawCommand {
     private position: Point;
     private text = '';
     private color: string;
+    private font: string;
 
     constructor(point: Point) {
         this.position = point;
@@ -205,11 +207,18 @@ export class TextCommand implements DrawCommand {
         this.color = color;
     }
 
+    public setFont(font: string) {
+        this.font = font;
+    }
+
     public draw(ctx: CanvasRenderingContext2D) {
         const currentFillStyle = ctx.fillStyle;
+        const currentFont = ctx.font;
         ctx.fillStyle = this.color;
+        ctx.font = this.font;
         ctx.fillText(this.text, this.position.x, this.position.y);
         ctx.fillStyle = currentFillStyle;
+        ctx.font = currentFont;
     }
 }
 
