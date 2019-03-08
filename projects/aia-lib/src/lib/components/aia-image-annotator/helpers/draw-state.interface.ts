@@ -28,10 +28,12 @@ export abstract class DrawState {
 
 export class PencilState extends DrawState {
     currentCommand: PencilCommand = new PencilCommand();
+    lastCoord: Point;
 
     private addPointToCurrentCommand(ev: TouchEvent, offsetLeft: number, offsetTop: number, projectionFactor: number) {
         const point = this.getPointFromTouch(ev, offsetLeft, offsetTop, projectionFactor);
         this.currentCommand.addPoint(point);
+        return point;
     }
 
     public getName(): StateName {
@@ -39,14 +41,23 @@ export class PencilState extends DrawState {
     }
 
     public touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        this.addPointToCurrentCommand(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
+        this.lastCoord = this.addPointToCurrentCommand(ev,
+            imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
         this.currentCommand.setColor(<string>imageAnnotator.drawingCtx.fillStyle);
-        this.currentCommand.draw(imageAnnotator.drawingCtx);
     }
 
     public touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        this.addPointToCurrentCommand(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
-        this.currentCommand.draw(imageAnnotator.drawingCtx);
+        const point = this.addPointToCurrentCommand(ev,
+            imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
+        const ctx = imageAnnotator.drawingCtx;
+
+        ctx.beginPath();
+        ctx.moveTo(this.lastCoord.x, this.lastCoord.y);
+        ctx.lineTo(point.x, point.y);
+        ctx.closePath();
+        ctx.stroke();
+
+        this.lastCoord = point;
     }
 
     public touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
