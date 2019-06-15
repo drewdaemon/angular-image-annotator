@@ -25,7 +25,7 @@ export class EventTranslator {
     private getTypeFromEvent(ev: TouchEvent|MouseEvent): ContactEventType {
         let type: ContactEventType;
         switch (ev.type) {
-            case 'touchdown':
+            case 'touchstart':
                 type = 'start';
                 break;
             case 'mousedown':
@@ -44,7 +44,7 @@ export class EventTranslator {
                 type = 'end';
                 break;
             default:
-                console.error('aia-image-annotator: unrecognized contact event');
+                console.error(`aia-image-annotator: unrecognized contact event: ${ev.type}`);
         }
         return type;
     }
