@@ -36,6 +36,19 @@ export class PencilState extends DrawState {
         return point;
     }
 
+    /**
+     * Draws the next point in the path
+     * @param ctx Canvas to be drawn on
+     * @param point Next point to draw
+     */
+    private drawNextPoint(ctx: CanvasRenderingContext2D, point) {
+        ctx.beginPath();
+        ctx.moveTo(this.lastCoord.x, this.lastCoord.y);
+        ctx.lineTo(point.x, point.y);
+        ctx.closePath();
+        ctx.stroke();
+    }
+
     public getName(): StateName {
         return 'pencil';
     }
@@ -49,20 +62,14 @@ export class PencilState extends DrawState {
     public touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
         const point = this.addPointToCurrentCommand(ev,
             imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
-        const ctx = imageAnnotator.drawingCtx;
-
-        ctx.beginPath();
-        ctx.moveTo(this.lastCoord.x, this.lastCoord.y);
-        ctx.lineTo(point.x, point.y);
-        ctx.closePath();
-        ctx.stroke();
-
+        this.drawNextPoint(imageAnnotator.drawingCtx, point);
         this.lastCoord = point;
     }
 
     public touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        this.addPointToCurrentCommand(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
-        this.currentCommand.draw(imageAnnotator.drawingCtx);
+        const point = this.addPointToCurrentCommand(ev,
+            imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
+        this.drawNextPoint(imageAnnotator.drawingCtx, point);
         imageAnnotator.addCommand(this.currentCommand);
         this.currentCommand = new PencilCommand();
     }
@@ -189,8 +196,8 @@ export class PencilCommand implements DrawCommand {
             ctx.moveTo(lastCoord.x, lastCoord.y);
             ctx.lineTo(coord.x, coord.y);
             ctx.closePath();
-            ctx.stroke();
         }
+        ctx.stroke();
         ctx.strokeStyle = currentStrokeStyle;
     }
 }
