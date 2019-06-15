@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, Input, OnChanges } from '@angular/core';
 import { DrawState, PencilState, TextState, DrawCommand, StateName, ClearCommand } from './helpers/draw-state.interface';
+import { EventTranslator } from './helpers/event-translator';
 import { DEFAULTS } from './helpers/defaults';
 
 @Component({
@@ -56,6 +57,9 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
   public get canvasRect(): ClientRect {
     return this.drawingCanvasRef.nativeElement.getBoundingClientRect();
   }
+
+  private eventTranslator = new EventTranslator();
+  private mouseCurrentlyDown = false;
 
   constructor() { }
 
@@ -256,16 +260,39 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
   }
 
   public touchStart(ev: TouchEvent) {
-    this._state.touchStart(this, ev);
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactStart(this, contactEvent);
   }
 
   public touchMove(ev: TouchEvent) {
     ev.preventDefault(); // Disable scrolling
-    this._state.touchMove(this, ev);
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactMove(this, contactEvent);
   }
 
   public touchEnd(ev: TouchEvent) {
-    this._state.touchEnd(this, ev);
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactEnd(this, contactEvent);
+  }
+
+  public mouseDown(ev: MouseEvent) {
+    this.mouseCurrentlyDown = true;
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactStart(this, contactEvent);
+  }
+
+  public mouseMove(ev: MouseEvent) {
+    if (!this.mouseCurrentlyDown) {
+      return;
+    }
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactMove(this, contactEvent);
+  }
+
+  public mouseUp(ev: MouseEvent) {
+    this.mouseCurrentlyDown = false;
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactEnd(this, contactEvent);
   }
 
   public keyUp(ev: KeyboardEvent) {

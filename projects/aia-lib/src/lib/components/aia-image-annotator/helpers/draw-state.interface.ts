@@ -1,25 +1,20 @@
-import { AiaImageAnnotatorComponent } from '../aia-image-annotator.component';
 import { ElementRef } from '@angular/core';
+
+import { AiaImageAnnotatorComponent } from '../aia-image-annotator.component';
+import { Point } from './point.interface';
+import { ContactEvent } from './contact-event';
 
 export type StateName = 'pencil'|'text';
 
 export abstract class DrawState {
-    protected getPointFromTouch(ev: TouchEvent, offsetLeft: number, offsetTop: number, projectionFactor = 1): Point {
-        const touch = ev.changedTouches.item(0);
-        const point: Point = {
-            x: (touch.clientX - offsetLeft) * projectionFactor,
-            y: (touch.clientY - offsetTop) * projectionFactor
-        };
-        return point;
-    }
 
     abstract getName(): StateName;
 
-    abstract touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
+    abstract contactStart(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void;
 
-    abstract touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
+    abstract contactMove(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void;
 
-    abstract touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
+    abstract contactEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void;
 
     abstract keyUp(imageAnnotator: AiaImageAnnotatorComponent, ev: KeyboardEvent): void;
 
@@ -29,12 +24,6 @@ export abstract class DrawState {
 export class PencilState extends DrawState {
     currentCommand: PencilCommand = new PencilCommand();
     lastCoord: Point;
-
-    private addPointToCurrentCommand(ev: TouchEvent, offsetLeft: number, offsetTop: number, projectionFactor: number) {
-        const point = this.getPointFromTouch(ev, offsetLeft, offsetTop, projectionFactor);
-        this.currentCommand.addPoint(point);
-        return point;
-    }
 
     /**
      * Draws the next point in the path
@@ -53,23 +42,20 @@ export class PencilState extends DrawState {
         return 'pencil';
     }
 
-    public touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        this.lastCoord = this.addPointToCurrentCommand(ev,
-            imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
+    public contactStart(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
+        this.lastCoord = ev.point;
         this.currentCommand.setColor(<string>imageAnnotator.drawingCtx.fillStyle);
     }
 
-    public touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        const point = this.addPointToCurrentCommand(ev,
-            imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
-        this.drawNextPoint(imageAnnotator.drawingCtx, point);
-        this.lastCoord = point;
+    public contactMove(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
+        this.currentCommand.addPoint(ev.point);
+        this.drawNextPoint(imageAnnotator.drawingCtx, ev.point);
+        this.lastCoord = ev.point;
     }
 
-    public touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        const point = this.addPointToCurrentCommand(ev,
-            imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
-        this.drawNextPoint(imageAnnotator.drawingCtx, point);
+    public contactEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
+        this.currentCommand.addPoint(ev.point);
+        this.drawNextPoint(imageAnnotator.drawingCtx, ev.point);
         imageAnnotator.addCommand(this.currentCommand);
         this.currentCommand = new PencilCommand();
     }
@@ -116,15 +102,13 @@ export class TextState extends DrawState {
         this.currentCommand = null;
     }
 
-    public touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
+    public contactStart(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
         if (this.currentCommand && !this.currentCommand.empty()) {
             this.recordCommandAndReset(imageAnnotator);
         } else {
-            const point = this.getPointFromTouch(ev,
-                imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
-            this.currentCommand = new TextCommand(point);
+            this.currentCommand = new TextCommand(ev.point);
             this.positionTextBox(imageAnnotator.textBoxRef,
-                point.x / imageAnnotator.projectionFactor, point.y / imageAnnotator.projectionFactor);
+                ev.point.x / imageAnnotator.projectionFactor, ev.point.y / imageAnnotator.projectionFactor);
             this.focusTextBox(imageAnnotator.textBoxRef);
             this.onTextBoxBlur(imageAnnotator.textBoxRef)
                 .then(_ => {
@@ -135,14 +119,12 @@ export class TextState extends DrawState {
         }
     }
 
-    public touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        const point = this.getPointFromTouch(ev,
-            imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
-        this.currentCommand.updatePosition(point);
-        this.positionTextBox(imageAnnotator.textBoxRef, point.x, point.y);
+    public contactMove(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
+        this.currentCommand.updatePosition(ev.point);
+        this.positionTextBox(imageAnnotator.textBoxRef, ev.point.x, ev.point.y);
     }
 
-    public touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
+    public contactEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
         if (!this.currentCommand) {
             return;
         }
@@ -165,11 +147,6 @@ export class TextState extends DrawState {
 
 export interface DrawCommand {
     draw(ctx: CanvasRenderingContext2D): void;
-}
-
-interface Point {
-    x: number;
-    y: number;
 }
 
 export class PencilCommand implements DrawCommand {
