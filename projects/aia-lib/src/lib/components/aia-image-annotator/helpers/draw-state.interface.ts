@@ -25,6 +25,19 @@ export class PencilState extends DrawState {
     currentCommand: PencilCommand = new PencilCommand();
     lastCoord: Point;
 
+    /**
+     * Draws the next point in the path
+     * @param ctx Canvas to be drawn on
+     * @param point Next point to draw
+     */
+    private drawNextPoint(ctx: CanvasRenderingContext2D, point) {
+        ctx.beginPath();
+        ctx.moveTo(this.lastCoord.x, this.lastCoord.y);
+        ctx.lineTo(point.x, point.y);
+        ctx.closePath();
+        ctx.stroke();
+    }
+
     public getName(): StateName {
         return 'pencil';
     }
@@ -36,20 +49,13 @@ export class PencilState extends DrawState {
 
     public contactMove(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
         this.currentCommand.addPoint(ev.point);
-        const ctx = imageAnnotator.drawingCtx;
-
-        ctx.beginPath();
-        ctx.moveTo(this.lastCoord.x, this.lastCoord.y);
-        ctx.lineTo(ev.point.x, ev.point.y);
-        ctx.closePath();
-        ctx.stroke();
-
+        this.drawNextPoint(imageAnnotator.drawingCtx, ev.point);
         this.lastCoord = ev.point;
     }
 
     public contactEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
         this.currentCommand.addPoint(ev.point);
-        this.currentCommand.draw(imageAnnotator.drawingCtx);
+        this.drawNextPoint(imageAnnotator.drawingCtx, ev.point);
         imageAnnotator.addCommand(this.currentCommand);
         this.currentCommand = new PencilCommand();
     }
@@ -167,8 +173,8 @@ export class PencilCommand implements DrawCommand {
             ctx.moveTo(lastCoord.x, lastCoord.y);
             ctx.lineTo(coord.x, coord.y);
             ctx.closePath();
-            ctx.stroke();
         }
+        ctx.stroke();
         ctx.strokeStyle = currentStrokeStyle;
     }
 }

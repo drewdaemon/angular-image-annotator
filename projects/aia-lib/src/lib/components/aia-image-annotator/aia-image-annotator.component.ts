@@ -207,6 +207,7 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
 
     this.drawingCtx = this.drawingCanvasRef.nativeElement.getContext('2d');
     this.drawingCtx.lineJoin = 'round';
+    this.drawingCtx.lineCap = 'round';
     this.drawingCtx.lineWidth = 2;
 
     this.drawingCtx.textBaseline = 'hanging';
