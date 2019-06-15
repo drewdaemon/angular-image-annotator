@@ -1,10 +1,9 @@
 import { ContactEvent } from './contact-event';
+import { ContactEventType } from './contact-event-type';
 import { Point } from './point.interface';
 
 export class EventTranslator {
     public translate(event: TouchEvent|MouseEvent, canvasRect: ClientRect, projectionFactor: number) {
-        const type = this.getTypeFromEvent(event);
-
         let singleEvent;
         if (event instanceof TouchEvent) {
             singleEvent = event.changedTouches.item(0);
@@ -12,7 +11,7 @@ export class EventTranslator {
             singleEvent = event;
         }
         const point = this.getCanvasPointFromEvent(singleEvent, canvasRect.left, canvasRect.top, projectionFactor);
-        return new ContactEvent('start', point);
+        return new ContactEvent(this.getTypeFromEvent(event), point);
     }
 
     private getCanvasPointFromEvent(ev: MouseEvent, offsetLeft: number, offsetTop: number, projectionFactor: number): Point {
@@ -23,7 +22,30 @@ export class EventTranslator {
         return point;
     }
 
-    private getTypeFromEvent(ev: TouchEvent|MouseEvent) {
-        // TODO
+    private getTypeFromEvent(ev: TouchEvent|MouseEvent): ContactEventType {
+        let type: ContactEventType;
+        switch (ev.type) {
+            case 'touchdown':
+                type = 'start';
+                break;
+            case 'mousedown':
+                type = 'start';
+                break;
+            case 'touchmove':
+                type = 'move';
+                break;
+            case 'mousemove':
+                type = 'move';
+                break;
+            case 'touchend':
+                type = 'end';
+                break;
+            case 'mouseup':
+                type = 'end';
+                break;
+            default:
+                console.error('aia-image-annotator: unrecognized contact event');
+        }
+        return type;
     }
 }

@@ -1,10 +1,11 @@
 import { Point } from './point.interface';
+import { ContactEventType } from './contact-event-type';
 
 export class ContactEvent {
-    public type: 'start'|'move'|'end';
+    public type: ContactEventType;
     public point: Point;
 
-    constructor (type: 'start'|'move'|'end', point: Point) {
+    constructor (type: ContactEventType, point: Point) {
         this.type = type;
         this.point = point;
     }
