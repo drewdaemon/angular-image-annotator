@@ -5,7 +5,8 @@ import { Point } from './point.interface';
 export class EventTranslator {
     public translate(event: TouchEvent|MouseEvent, canvasRect: ClientRect, projectionFactor: number) {
         let singleEvent;
-        if (event instanceof TouchEvent) {
+        // @ts-ignore
+        if (window.TouchEvent && event instanceof TouchEvent) {
             singleEvent = event.changedTouches.item(0);
         } else {
             singleEvent = event;
