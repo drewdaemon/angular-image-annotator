@@ -295,7 +295,4 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
     this._state.contactEnd(this, contactEvent);
   }
 
-  public keyUp(ev: KeyboardEvent) {
-    this._state.keyUp(this, ev);
-  }
 }
