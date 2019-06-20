@@ -1,6 +1,7 @@
 {
   "name": "angular-image-annotator",
   "version": "0.0.9",
+  "license": "MIT",
   "description": "Angular component for annotating images.",
   "author": "Andrew Tate",
   "repository": {
