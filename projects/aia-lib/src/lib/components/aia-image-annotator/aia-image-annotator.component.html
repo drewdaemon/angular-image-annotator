@@ -3,6 +3,6 @@
         <canvas class="image-canvas" #imageCanvas [width]="imageWidth" [height]="imageHeight" [style.width.px]="displayWidth" [style.height.px]="displayHeight"></canvas>
         <canvas #drawingCanvas (touchstart)="touchStart($event)" (touchmove)="touchMove($event)" (touchend)="touchEnd($event)"  (mousedown)="mouseDown($event)" (mousemove)="mouseMove($event)" (mouseup)="mouseUp($event)" [width]="imageWidth" [height]="imageHeight" [style.width.px]="displayWidth" [style.height.px]="displayHeight"></canvas>
         <canvas #mergeCanvas class="merge-canvas" [width]="imageWidth" [height]="imageHeight"></canvas>
-        <div #textBox contenteditable="true" class="floating-text-entry"></div>
+        <aia-floating-text-entry></aia-floating-text-entry>
     </div>
 </div>

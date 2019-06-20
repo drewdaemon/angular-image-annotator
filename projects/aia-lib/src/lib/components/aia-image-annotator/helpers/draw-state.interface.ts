@@ -1,6 +1,6 @@
-import { ElementRef } from '@angular/core';
-
 import { AiaImageAnnotatorComponent } from '../aia-image-annotator.component';
+import { FloatingTextEntryComponent } from '../floating-text-entry/floating-text-entry.component';
+
 import { Point } from './point.interface';
 import { ContactEvent } from './contact-event';
 import { PositionTextPair } from './position-text-pair.interface';
@@ -70,45 +70,10 @@ export class TextState extends DrawState {
         return 'text';
     }
 
-    private positionTextBox(textBoxRef: ElementRef, x: number, y: number) {
-        textBoxRef.nativeElement.style.top = y + 'px';
-        textBoxRef.nativeElement.style.left = x + 'px';
-    }
-
-    private textBoxIsEmpty(textBoxRef: ElementRef) {
-        return textBoxRef.nativeElement.innerText.trim() === '';
-    }
-
-    private focusTextBox(textBoxRef: ElementRef) {
-        setTimeout(_ => {
-            textBoxRef.nativeElement.focus();
-        }, 0);
-    }
-
-    private clearTextBox(textBoxRef: ElementRef) {
-        textBoxRef.nativeElement.innerText = '';
-    }
-
-    private onTextBoxBlur(textBoxRef: ElementRef): Promise<any> {
-        return new Promise<any>(resolve => {
-            textBoxRef.nativeElement.addEventListener('blur', resolve);
-        });
-    }
-
-    private getLineHeight(el: HTMLDivElement): number {
-        let temp = document.createElement(el.nodeName);
-        temp.setAttribute('style', `margin:0px;padding:0px;font-family:${el.style.fontFamily};font-size:${el.style.fontSize}`);
-        temp.innerHTML = 'test';
-        temp = el.parentNode.appendChild(temp);
-        const ret = temp.clientHeight;
-        temp.parentNode.removeChild(temp);
-        return ret;
-    }
-
-    private generatePositionTextPairs(textBoxRef: ElementRef, projectionFactor: number): PositionTextPair[] {
-        const fullText = textBoxRef.nativeElement.innerText;
+    private generatePositionTextPairs(textEntry: FloatingTextEntryComponent, projectionFactor: number): PositionTextPair[] {
+        const fullText = textEntry.getText();
         const lines = fullText.split('\n');
-        const lineHeight = this.getLineHeight(textBoxRef.nativeElement) * projectionFactor;
+        const lineHeight = textEntry.getLineHeight() * projectionFactor;
         const positionTextPairs: PositionTextPair[] = [];
 
         for (let i = 0; i < lines.length; i++) {
@@ -126,28 +91,28 @@ export class TextState extends DrawState {
     }
 
     private recordCommandAndReset(imageAnnotator: AiaImageAnnotatorComponent) {
-        const positionTextPairs = this.generatePositionTextPairs(imageAnnotator.textBoxRef, imageAnnotator.projectionFactor);
+        const positionTextPairs = this.generatePositionTextPairs(imageAnnotator.textEntry, imageAnnotator.projectionFactor);
         this.currentCommand.addPositionTextPairs(positionTextPairs);
         this.currentCommand.setColor(<string>imageAnnotator.drawingCtx.fillStyle);
         this.currentCommand.setFont(imageAnnotator.drawingCtx.font);
         this.currentCommand.draw(imageAnnotator.drawingCtx);
         imageAnnotator.addCommand(this.currentCommand);
-        this.clearTextBox(imageAnnotator.textBoxRef);
+        imageAnnotator.textEntry.clear();
         this.currentCommand = null;
     }
 
     public contactStart(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
-        if (this.currentCommand && !this.textBoxIsEmpty(imageAnnotator.textBoxRef)) {
+        if (this.currentCommand && !imageAnnotator.textEntry.isEmpty()) {
             this.recordCommandAndReset(imageAnnotator);
         } else {
             this.currentCommand = new TextCommand();
             this.currentPosition = ev.point;
-            this.positionTextBox(imageAnnotator.textBoxRef,
-                ev.point.x / imageAnnotator.projectionFactor, ev.point.y / imageAnnotator.projectionFactor);
-            this.focusTextBox(imageAnnotator.textBoxRef);
-            this.onTextBoxBlur(imageAnnotator.textBoxRef)
+            imageAnnotator.textEntry.setPosition(ev.point.x / imageAnnotator.projectionFactor,
+                ev.point.y / imageAnnotator.projectionFactor);
+            imageAnnotator.textEntry.focus();
+            imageAnnotator.textEntry.onBlur()
                 .then(_ => {
-                    if (this.currentCommand && !this.textBoxIsEmpty(imageAnnotator.textBoxRef)) {
+                    if (this.currentCommand && !imageAnnotator.textEntry.isEmpty()) {
                         this.recordCommandAndReset(imageAnnotator);
                     }
                 });
@@ -156,18 +121,18 @@ export class TextState extends DrawState {
 
     public contactMove(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
         this.currentPosition = ev.point;
-        this.positionTextBox(imageAnnotator.textBoxRef, ev.point.x, ev.point.y);
+        imageAnnotator.textEntry.setPosition(ev.point.x, ev.point.y);
     }
 
     public contactEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
         if (!this.currentCommand) {
             return;
         }
-        this.focusTextBox(imageAnnotator.textBoxRef);
+        imageAnnotator.textEntry.focus();
     }
 
     public cleanUp(imageAnnotator: AiaImageAnnotatorComponent): void {
-        if (this.currentCommand && !this.textBoxIsEmpty(imageAnnotator.textBoxRef)) {
+        if (this.currentCommand && !imageAnnotator.textEntry.isEmpty()) {
             this.recordCommandAndReset(imageAnnotator);
         }
     }
