@@ -1,6 +1,8 @@
 import { Component, OnInit, ViewChild, ElementRef, Input, OnChanges } from '@angular/core';
 import { DrawState, PencilState, TextState, DrawCommand, StateName, ClearCommand } from './helpers/draw-state.interface';
+import { EventTranslator } from './helpers/event-translator';
 import { DEFAULTS } from './helpers/defaults';
+import { FloatingTextEntryComponent } from './floating-text-entry/floating-text-entry.component';
 
 @Component({
   selector: 'aia-image-annotator',
@@ -36,7 +38,7 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
   @ViewChild('imageCanvas') private imageCanvasRef: ElementRef;
   @ViewChild('drawingCanvas') private drawingCanvasRef: ElementRef;
   @ViewChild('mergeCanvas') private mergeCanvasRef: ElementRef;
-  @ViewChild('textBox') textBoxRef: ElementRef;
+  @ViewChild(FloatingTextEntryComponent) textEntry: FloatingTextEntryComponent;
 
   public imageWidth = 0;
   public imageHeight = 0;
@@ -56,6 +58,9 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
   public get canvasRect(): ClientRect {
     return this.drawingCanvasRef.nativeElement.getBoundingClientRect();
   }
+
+  private eventTranslator = new EventTranslator();
+  private mouseCurrentlyDown = false;
 
   constructor() { }
 
@@ -203,6 +208,7 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
 
     this.drawingCtx = this.drawingCanvasRef.nativeElement.getContext('2d');
     this.drawingCtx.lineJoin = 'round';
+    this.drawingCtx.lineCap = 'round';
     this.drawingCtx.lineWidth = 2;
 
     this.drawingCtx.textBaseline = 'hanging';
@@ -214,20 +220,20 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
    * Sets the color and the font
    */
   private setColorAndFont(color: string, fontSize: string, fontFamily: string) {
-    if (!this.drawingCtx || !this.textBoxRef) {
+    if (!this.drawingCtx) {
       return;
     }
 
     this.drawingCtx.strokeStyle = color || DEFAULTS.color;
     this.drawingCtx.fillStyle = color || DEFAULTS.color;
-    this.textBoxRef.nativeElement.style.color = color || DEFAULTS.color;
+    this.textEntry.setColor(color || DEFAULTS.color);
 
     const fontString = `${fontSize || DEFAULTS.fontSize} ${fontFamily || DEFAULTS.fontFamily}`;
     this.drawingCtx.font = fontString;
 
     const fontParts = fontSize.match(/(.*)(px|pt)/);
-    const adjustedFontSize = Math.floor(parseInt(fontParts[1]) / this.projectionFactor) + fontParts[2];
-    this.textBoxRef.nativeElement.style.font = `${adjustedFontSize || DEFAULTS.fontSize} ${fontFamily || DEFAULTS.fontFamily}`;
+    const adjustedFontSize = Math.floor(parseInt(fontParts[1], 10) / this.projectionFactor) + fontParts[2];
+    this.textEntry.setFont(`${adjustedFontSize || DEFAULTS.fontSize} ${fontFamily || DEFAULTS.fontFamily}`);
   }
 
 
@@ -255,19 +261,39 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
   }
 
   public touchStart(ev: TouchEvent) {
-    this._state.touchStart(this, ev);
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactStart(this, contactEvent);
   }
 
   public touchMove(ev: TouchEvent) {
     ev.preventDefault(); // Disable scrolling
-    this._state.touchMove(this, ev);
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactMove(this, contactEvent);
   }
 
   public touchEnd(ev: TouchEvent) {
-    this._state.touchEnd(this, ev);
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactEnd(this, contactEvent);
   }
 
-  public keyUp(ev: KeyboardEvent) {
-    this._state.keyUp(this, ev);
+  public mouseDown(ev: MouseEvent) {
+    this.mouseCurrentlyDown = true;
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactStart(this, contactEvent);
   }
+
+  public mouseMove(ev: MouseEvent) {
+    if (!this.mouseCurrentlyDown) {
+      return;
+    }
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactMove(this, contactEvent);
+  }
+
+  public mouseUp(ev: MouseEvent) {
+    this.mouseCurrentlyDown = false;
+    const contactEvent = this.eventTranslator.translate(ev, this.canvasRect, this.projectionFactor);
+    this._state.contactEnd(this, contactEvent);
+  }
+
 }

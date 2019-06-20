@@ -1,27 +1,21 @@
 import { AiaImageAnnotatorComponent } from '../aia-image-annotator.component';
-import { ElementRef } from '@angular/core';
+import { FloatingTextEntryComponent } from '../floating-text-entry/floating-text-entry.component';
+
+import { Point } from './point.interface';
+import { ContactEvent } from './contact-event';
+import { PositionTextPair } from './position-text-pair.interface';
 
 export type StateName = 'pencil'|'text';
 
 export abstract class DrawState {
-    protected getPointFromTouch(ev: TouchEvent, offsetLeft: number, offsetTop: number, projectionFactor = 1): Point {
-        const touch = ev.changedTouches.item(0);
-        const point: Point = {
-            x: (touch.clientX - offsetLeft) * projectionFactor,
-            y: (touch.clientY - offsetTop) * projectionFactor
-        };
-        return point;
-    }
 
     abstract getName(): StateName;
 
-    abstract touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
+    abstract contactStart(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void;
 
-    abstract touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
+    abstract contactMove(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void;
 
-    abstract touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void;
-
-    abstract keyUp(imageAnnotator: AiaImageAnnotatorComponent, ev: KeyboardEvent): void;
+    abstract contactEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void;
 
     abstract cleanUp(imageAnnotator: AiaImageAnnotatorComponent): void;
 }
@@ -30,139 +24,126 @@ export class PencilState extends DrawState {
     currentCommand: PencilCommand = new PencilCommand();
     lastCoord: Point;
 
-    private addPointToCurrentCommand(ev: TouchEvent, offsetLeft: number, offsetTop: number, projectionFactor: number) {
-        const point = this.getPointFromTouch(ev, offsetLeft, offsetTop, projectionFactor);
-        this.currentCommand.addPoint(point);
-        return point;
+    /**
+     * Draws the next point in the path
+     * @param ctx Canvas to be drawn on
+     * @param point Next point to draw
+     */
+    private drawNextPoint(ctx: CanvasRenderingContext2D, point: Point) {
+        ctx.beginPath();
+        ctx.moveTo(this.lastCoord.x, this.lastCoord.y);
+        ctx.lineTo(point.x, point.y);
+        ctx.closePath();
+        ctx.stroke();
     }
 
     public getName(): StateName {
         return 'pencil';
     }
 
-    public touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        this.lastCoord = this.addPointToCurrentCommand(ev,
-            imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
+    public contactStart(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
+        this.lastCoord = ev.point;
         this.currentCommand.setColor(<string>imageAnnotator.drawingCtx.fillStyle);
     }
 
-    public touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        const point = this.addPointToCurrentCommand(ev,
-            imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
-        const ctx = imageAnnotator.drawingCtx;
-
-        ctx.beginPath();
-        ctx.moveTo(this.lastCoord.x, this.lastCoord.y);
-        ctx.lineTo(point.x, point.y);
-        ctx.closePath();
-        ctx.stroke();
-
-        this.lastCoord = point;
+    public contactMove(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
+        this.currentCommand.addPoint(ev.point);
+        this.drawNextPoint(imageAnnotator.drawingCtx, ev.point);
+        this.lastCoord = ev.point;
     }
 
-    public touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        this.addPointToCurrentCommand(ev, imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
-        this.currentCommand.draw(imageAnnotator.drawingCtx);
+    public contactEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
+        this.currentCommand.addPoint(ev.point);
+        this.drawNextPoint(imageAnnotator.drawingCtx, ev.point);
         imageAnnotator.addCommand(this.currentCommand);
         this.currentCommand = new PencilCommand();
     }
-
-    public keyUp(imageAnnotator: AiaImageAnnotatorComponent, ev: KeyboardEvent): void {}
 
     public cleanUp(imageAnnotator: AiaImageAnnotatorComponent): void {}
 }
 
 export class TextState extends DrawState {
-    currentCommand: TextCommand;
+    private currentCommand: TextCommand;
+    private currentPosition: Point;
 
     public getName(): StateName {
         return 'text';
     }
 
-    private positionTextBox(textBoxRef: ElementRef, x: number, y: number) {
-        textBoxRef.nativeElement.style.top = y + 'px';
-        textBoxRef.nativeElement.style.left = x + 'px';
-    }
+    private generatePositionTextPairs(textEntry: FloatingTextEntryComponent, projectionFactor: number): PositionTextPair[] {
+        const fullText = textEntry.getText();
+        const lines = fullText.split('\n');
+        const lineHeight = textEntry.getLineHeight() * projectionFactor;
+        const positionTextPairs: PositionTextPair[] = [];
 
-    private focusTextBox(textBoxRef: ElementRef) {
-        setTimeout(_ => {
-            textBoxRef.nativeElement.focus();
-        }, 0);
-    }
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].trim() === '') {
+                continue;
+            }
+            const position = {x: this.currentPosition.x, y: this.currentPosition.y + (i * lineHeight)};
+            positionTextPairs.push({
+                text: lines[i],
+                position: position
+            });
+        }
 
-    private clearTextBox(textBoxRef: ElementRef) {
-        textBoxRef.nativeElement.value = '';
-    }
-
-    private onTextBoxBlur(textBoxRef: ElementRef): Promise<any> {
-        return new Promise<any>(resolve => {
-            textBoxRef.nativeElement.addEventListener('blur', resolve);
-        });
+        return positionTextPairs;
     }
 
     private recordCommandAndReset(imageAnnotator: AiaImageAnnotatorComponent) {
+        const positionTextPairs = this.generatePositionTextPairs(imageAnnotator.textEntry, imageAnnotator.projectionFactor);
+        this.currentCommand.addPositionTextPairs(positionTextPairs);
         this.currentCommand.setColor(<string>imageAnnotator.drawingCtx.fillStyle);
         this.currentCommand.setFont(imageAnnotator.drawingCtx.font);
         this.currentCommand.draw(imageAnnotator.drawingCtx);
         imageAnnotator.addCommand(this.currentCommand);
-        this.clearTextBox(imageAnnotator.textBoxRef);
+        imageAnnotator.textEntry.clear();
         this.currentCommand = null;
     }
 
-    public touchStart(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        if (this.currentCommand && !this.currentCommand.empty()) {
+    public contactStart(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
+        if (this.currentCommand && !imageAnnotator.textEntry.isEmpty()) {
             this.recordCommandAndReset(imageAnnotator);
+            imageAnnotator.textEntry.hide();
         } else {
-            const point = this.getPointFromTouch(ev,
-                imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
-            this.currentCommand = new TextCommand(point);
-            this.positionTextBox(imageAnnotator.textBoxRef,
-                point.x / imageAnnotator.projectionFactor, point.y / imageAnnotator.projectionFactor);
-            this.focusTextBox(imageAnnotator.textBoxRef);
-            this.onTextBoxBlur(imageAnnotator.textBoxRef)
+            this.currentCommand = new TextCommand();
+            this.currentPosition = ev.point;
+            imageAnnotator.textEntry.setPosition(ev.point.x / imageAnnotator.projectionFactor,
+                ev.point.y / imageAnnotator.projectionFactor);
+            imageAnnotator.textEntry.show();
+            imageAnnotator.textEntry.focus();
+            imageAnnotator.textEntry.onBlur()
                 .then(_ => {
-                    if (this.currentCommand && !this.currentCommand.empty()) {
+                    if (this.currentCommand && !imageAnnotator.textEntry.isEmpty()) {
                         this.recordCommandAndReset(imageAnnotator);
                     }
                 });
         }
     }
 
-    public touchMove(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
-        const point = this.getPointFromTouch(ev,
-            imageAnnotator.canvasRect.left, imageAnnotator.canvasRect.top, imageAnnotator.projectionFactor);
-        this.currentCommand.updatePosition(point);
-        this.positionTextBox(imageAnnotator.textBoxRef, point.x, point.y);
+    public contactMove(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
+        this.currentPosition = ev.point;
+        imageAnnotator.textEntry.setPosition(ev.point.x / imageAnnotator.projectionFactor,
+            ev.point.y / imageAnnotator.projectionFactor);
     }
 
-    public touchEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: TouchEvent): void {
+    public contactEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
         if (!this.currentCommand) {
             return;
         }
-        this.focusTextBox(imageAnnotator.textBoxRef);
-    }
-
-    public keyUp(_: AiaImageAnnotatorComponent, ev: KeyboardEvent) {
-        if (!this.currentCommand) {
-            return;
-        }
-        this.currentCommand.setText((<HTMLInputElement>ev.target).value);
+        imageAnnotator.textEntry.focus();
     }
 
     public cleanUp(imageAnnotator: AiaImageAnnotatorComponent): void {
-        if (this.currentCommand && !this.currentCommand.empty()) {
+        if (this.currentCommand && !imageAnnotator.textEntry.isEmpty()) {
             this.recordCommandAndReset(imageAnnotator);
         }
+        imageAnnotator.textEntry.hide();
     }
 }
 
 export interface DrawCommand {
     draw(ctx: CanvasRenderingContext2D): void;
-}
-
-interface Point {
-    x: number;
-    y: number;
 }
 
 export class PencilCommand implements DrawCommand {
@@ -189,32 +170,19 @@ export class PencilCommand implements DrawCommand {
             ctx.moveTo(lastCoord.x, lastCoord.y);
             ctx.lineTo(coord.x, coord.y);
             ctx.closePath();
-            ctx.stroke();
         }
+        ctx.stroke();
         ctx.strokeStyle = currentStrokeStyle;
     }
 }
 
 export class TextCommand implements DrawCommand {
-    private position: Point;
-    private text = '';
+    private positionTextPairs: PositionTextPair[] = [];
     private color: string;
     private font: string;
 
-    constructor(point: Point) {
-        this.position = point;
-    }
-
-    public empty(): boolean {
-        return this.text === '';
-    }
-
-    public updatePosition(point: Point) {
-        this.position = point;
-    }
-
-    public setText(text: string) {
-        this.text = text;
+    public addPositionTextPairs(pairs: PositionTextPair[]) {
+        this.positionTextPairs = this.positionTextPairs.concat(pairs);
     }
 
     public setColor(color: string) {
@@ -230,7 +198,9 @@ export class TextCommand implements DrawCommand {
         const currentFont = ctx.font;
         ctx.fillStyle = this.color;
         ctx.font = this.font;
-        ctx.fillText(this.text, this.position.x, this.position.y);
+        for (const pair of this.positionTextPairs) {
+            ctx.fillText(pair.text, pair.position.x, pair.position.y);
+        }
         ctx.fillStyle = currentFillStyle;
         ctx.font = currentFont;
     }
