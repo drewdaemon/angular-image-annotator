@@ -104,11 +104,13 @@ export class TextState extends DrawState {
     public contactStart(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
         if (this.currentCommand && !imageAnnotator.textEntry.isEmpty()) {
             this.recordCommandAndReset(imageAnnotator);
+            imageAnnotator.textEntry.hide();
         } else {
             this.currentCommand = new TextCommand();
             this.currentPosition = ev.point;
             imageAnnotator.textEntry.setPosition(ev.point.x / imageAnnotator.projectionFactor,
                 ev.point.y / imageAnnotator.projectionFactor);
+            imageAnnotator.textEntry.show();
             imageAnnotator.textEntry.focus();
             imageAnnotator.textEntry.onBlur()
                 .then(_ => {
@@ -136,6 +138,7 @@ export class TextState extends DrawState {
         if (this.currentCommand && !imageAnnotator.textEntry.isEmpty()) {
             this.recordCommandAndReset(imageAnnotator);
         }
+        imageAnnotator.textEntry.hide();
     }
 }
 

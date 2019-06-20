@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
 
 @Component({
   selector: 'aia-floating-text-entry',
@@ -7,10 +7,21 @@ import { Component, ViewChild, ElementRef } from '@angular/core';
 })
 export class FloatingTextEntryComponent {
 
+    public currentText = '';
+
     @ViewChild('textBox') textBoxRef: ElementRef;
+    @ViewChild('input') inputRef: ElementRef;
 
     public getText(): string {
-        return this.textBoxRef.nativeElement.innerText;
+        return this.currentText;
+    }
+
+    public hide(): void {
+        this.textBoxRef.nativeElement.style.display = 'none';
+    }
+
+    public show(): void {
+        this.textBoxRef.nativeElement.style.display = 'block';
     }
 
     public setFont(fontStr: string) {
@@ -27,22 +38,22 @@ export class FloatingTextEntryComponent {
     }
 
     public isEmpty(): boolean {
-        return this.textBoxRef.nativeElement.innerText.trim() === '';
+        return this.currentText.trim() === '';
     }
 
     public focus() {
         setTimeout(_ => {
-            this.textBoxRef.nativeElement.focus();
+            this.inputRef.nativeElement.focus();
         }, 0);
     }
 
     public clear() {
-        this.textBoxRef.nativeElement.innerText = '';
+        this.currentText = '';
     }
 
     public onBlur(): Promise<any> {
         return new Promise<any>(resolve => {
-            this.textBoxRef.nativeElement.addEventListener('blur', resolve);
+            this.inputRef.nativeElement.addEventListener('blur', resolve);
         });
     }
 
