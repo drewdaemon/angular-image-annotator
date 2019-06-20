@@ -232,7 +232,7 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
     this.drawingCtx.font = fontString;
 
     const fontParts = fontSize.match(/(.*)(px|pt)/);
-    const adjustedFontSize = Math.floor(parseInt(fontParts[1]) / this.projectionFactor) + fontParts[2];
+    const adjustedFontSize = Math.floor(parseInt(fontParts[1], 10) / this.projectionFactor) + fontParts[2];
     this.textEntry.setFont(`${adjustedFontSize || DEFAULTS.fontSize} ${fontFamily || DEFAULTS.fontFamily}`);
   }
 

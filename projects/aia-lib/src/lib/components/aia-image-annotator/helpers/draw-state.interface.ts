@@ -121,7 +121,8 @@ export class TextState extends DrawState {
 
     public contactMove(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
         this.currentPosition = ev.point;
-        imageAnnotator.textEntry.setPosition(ev.point.x, ev.point.y);
+        imageAnnotator.textEntry.setPosition(ev.point.x / imageAnnotator.projectionFactor,
+            ev.point.y / imageAnnotator.projectionFactor);
     }
 
     public contactEnd(imageAnnotator: AiaImageAnnotatorComponent, ev: ContactEvent): void {
