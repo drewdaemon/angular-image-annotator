@@ -1,0 +1,27 @@
+.floating-text-entry {
+    display: none;
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    background-color: rgba(0,0,0,0);
+    border: 1px solid rgb(90, 165, 190);
+    text-align: left;
+    white-space: pre;
+
+    p {
+        padding: 0;
+        margin: 0;
+    }
+
+    textarea {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        height: 0;
+        width: 0;
+        border: 0;
+        padding: 0;
+        background: rgba(0,0,0,0);
+        resize: none;
+    }
+}
