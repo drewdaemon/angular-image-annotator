@@ -3,6 +3,8 @@
 ## Description
 An Angular library for in-browser image annotation (think MSPaint on the canvas). [View demo.](https://drewctate.github.io/angular-image-annotator-demo/)
 
+Contributions/issues welcome. Please open an issue before submitting a PR.
+
 ## Getting Started
 
 ### 1. Install with Yarn/NPM
@@ -101,7 +103,7 @@ Returns annotated image as data URI. Default image type is 'image/png'.
 [ ] Ability to set max dimensions
 
 
-[ ] Support mouse events (desktop context)
+[x] Support mouse events (desktop context)
 
 ### Build
 
