@@ -1,16 +1,28 @@
+@mixin lhCrop($line-height) {
+    &::before {
+      content: '';
+      display: block;
+      height: 0;
+      width: 0;
+      margin-top: calc((1 - #{$line-height}) * 0.5em);
+    }
+  }
+
 .floating-text-entry {
     display: none;
     position: absolute;
     padding: 0;
     margin: 0;
     background-color: rgba(0,0,0,0);
-    border: 1px solid rgb(90, 165, 190);
+    // Border width set programatically in ngOnInit()
+    border: 0px solid rgb(90, 165, 190);
     text-align: left;
     white-space: pre;
 
     p {
         padding: 0;
         margin: 0;
+        @include lhCrop(1.2);
     }
 
     textarea {
