@@ -13,7 +13,6 @@ export class AppComponent {
   public strokeColor = '#000';
   public fontSize = '20px';
   public fontFamily = 'Georgia';
-  public displayWidth = 500;
 
   @ViewChild('annotator') annotator: AiaImageAnnotatorComponent;
 
