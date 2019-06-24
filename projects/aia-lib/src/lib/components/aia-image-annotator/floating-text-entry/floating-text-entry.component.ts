@@ -5,12 +5,18 @@ import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
   templateUrl: './floating-text-entry.component.html',
   styleUrls: ['./floating-text-entry.component.scss']
 })
-export class FloatingTextEntryComponent {
+export class FloatingTextEntryComponent implements OnInit {
 
     public currentText = '';
+    private borderWidth = 2;
 
     @ViewChild('textBox') textBoxRef: ElementRef;
+    @ViewChild('p') pRef: ElementRef;
     @ViewChild('input') inputRef: ElementRef;
+
+    ngOnInit() {
+        this.textBoxRef.nativeElement.style.borderWidth = this.borderWidth + 'px';
+    }
 
     public getText(): string {
         return this.currentText;
@@ -26,6 +32,7 @@ export class FloatingTextEntryComponent {
 
     public setFont(fontStr: string) {
         this.textBoxRef.nativeElement.style.font = fontStr;
+        this.pRef.nativeElement.style.lineHeight = this.textBoxRef.nativeElement.style.fontSize;
     }
 
     public setColor(color: string) {
@@ -33,8 +40,8 @@ export class FloatingTextEntryComponent {
     }
 
     public setPosition(x: number, y: number) {
-        this.textBoxRef.nativeElement.style.top = y + 'px';
-        this.textBoxRef.nativeElement.style.left = x + 'px';
+        this.textBoxRef.nativeElement.style.top = y - this.borderWidth + 'px';
+        this.textBoxRef.nativeElement.style.left = x - this.borderWidth + 'px';
     }
 
     public isEmpty(): boolean {
