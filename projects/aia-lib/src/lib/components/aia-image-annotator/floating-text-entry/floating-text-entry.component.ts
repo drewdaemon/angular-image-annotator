@@ -1,11 +1,11 @@
-import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 
 @Component({
   selector: 'aia-floating-text-entry',
   templateUrl: './floating-text-entry.component.html',
   styleUrls: ['./floating-text-entry.component.scss']
 })
-export class FloatingTextEntryComponent implements OnInit {
+export class FloatingTextEntryComponent implements AfterViewInit {
 
     public currentText = '';
     private borderWidth = 2;
@@ -14,7 +14,7 @@ export class FloatingTextEntryComponent implements OnInit {
     @ViewChild('p') pRef: ElementRef;
     @ViewChild('input') inputRef: ElementRef;
 
-    ngOnInit() {
+    ngAfterViewInit() {
         this.textBoxRef.nativeElement.style.borderWidth = this.borderWidth + 'px';
     }
 
