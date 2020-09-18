@@ -110,24 +110,32 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
    * Undo last action
    */
   public undo() {
-    if (!this._drawCommands.length) {
+    if (!this.canUndo) {
       return;
     }
     this._redoCommands.push(this._drawCommands.pop());
     this.clearCanvas();
     this.drawCommandsOnCanvas(this._drawCommands, this.drawingCtx);
   }
+  
+  public get canUndo() {
+    return !!this._drawCommands.length
+  }
 
   /**
    * Redo last undone action if available
    */
   public redo() {
-    if (!this._redoCommands.length) {
+    if (!this.canRedo) {
       return;
     }
     this._drawCommands.push(this._redoCommands.pop());
     this.clearCanvas();
     this.drawCommandsOnCanvas(this._drawCommands, this.drawingCtx);
+  }
+
+  public get canRedo() {
+    return !!this._redoCommands.length
   }
 
   /**
