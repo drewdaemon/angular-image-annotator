@@ -1,7 +1,7 @@
 # Angular Image Annotator
 
 ## Description
-An Angular library for in-browser image annotation (think MSPaint on the canvas). [View demo.](https://drewctate.github.io/angular-image-annotator-demo/)
+An Angular library for in-browser image annotation (think MSPaint on the canvas). [View demo.](https://andrewctate.github.io/angular-image-annotator-demo/)
 
 Contributions/issues welcome. Please open an issue before submitting a PR.
 
