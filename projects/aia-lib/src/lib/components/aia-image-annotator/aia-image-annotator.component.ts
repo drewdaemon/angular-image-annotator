@@ -35,6 +35,8 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
 
   @Input() displayWidth = null;
 
+  @Input() strokeSize:  number;
+
   @ViewChild('imageCanvas') private imageCanvasRef: ElementRef;
   @ViewChild('drawingCanvas') private drawingCanvasRef: ElementRef;
   @ViewChild('mergeCanvas') private mergeCanvasRef: ElementRef;
@@ -209,7 +211,6 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
     this.drawingCtx = this.drawingCanvasRef.nativeElement.getContext('2d');
     this.drawingCtx.lineJoin = 'round';
     this.drawingCtx.lineCap = 'round';
-    this.drawingCtx.lineWidth = 2;
 
     this.drawingCtx.textBaseline = 'hanging';
 
@@ -226,6 +227,7 @@ export class AiaImageAnnotatorComponent implements OnInit, OnChanges {
 
     this.drawingCtx.strokeStyle = color || DEFAULTS.color;
     this.drawingCtx.fillStyle = color || DEFAULTS.color;
+    this.drawingCtx.lineWidth = this.strokeSize || DEFAULTS.strokeSize;
     this.textEntry.setColor(color || DEFAULTS.color);
 
     const fontString = `${fontSize || DEFAULTS.fontSize} ${fontFamily || DEFAULTS.fontFamily}`;
